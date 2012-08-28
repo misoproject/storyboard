@@ -10,6 +10,8 @@
     this.to = config.to;
     this.before = config.before;
     this.after = config.after;
+    this.intro = config.intro;
+    this.outro = config.outro;
   }
 
   _.extend(Miso.Transition.prototype, {
