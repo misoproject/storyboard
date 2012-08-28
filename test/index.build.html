@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Block Test Suite</title>
+  <link rel="stylesheet" href="vendor/qunit.css" type="text/css" media="screen" />
+  
+  <script src="../lib/miso.ds.deps.0.2.1.js"></script>
+  <script src="../dist/miso.block.deps.0.1.0.js"></script>
+
+  <!-- Vendor deps, non-lib -->
+  <script src="vendor/qunit.js"></script>
+  <script src="vendor/jslitmus.js"></script>
+
+  <!-- load test modules --> 
+  <script src="unit/core.js"></script>
+  <script src="unit/block.js"></script> 
+  <script src="unit/style.js"></script> 
+  <script src="unit/mixin.js"></script>
+  <script src="unit/events.js"></script>
+
+</head>
+<body>
+  <div class="block-test">
+    <h1 id="qunit-header">Block Test Suite</h1>
+    <h2 id="qunit-banner"></h2>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    <br />
+    <h1 class="qunit-header">Speed Suite</h1>
+  </div>
+
+  <div id="testcontainer1" style="position: absolute; width: 200px; height: 400px; left: 10px; right: 40px;">
+  </div>
+</body>
+</html>
