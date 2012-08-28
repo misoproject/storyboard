@@ -91,7 +91,6 @@
     equals(app.getState(), 'loaded');
   });
 
-
   test("Scope for before callback is the engine", 1, function() {
   var app = new Miso.Engine({
       initial : 'unloaded',
@@ -100,9 +99,7 @@
           from : 'unloaded', 
           to : 'loaded',
           before : function() {
-            console.log('before!');
             ok(( this instanceof Miso.Engine) );
-            return false;
           }
         }
       ],
@@ -110,7 +107,7 @@
     app.transition('load');
   });
 
-  test("Scope for after callback is the engine", function() {
+  test("Scope for after callback is the engine", 1, function() {
      var app = new Miso.Engine({
       initial : 'unloaded',
       transitions : [
@@ -119,12 +116,16 @@
           to : 'loaded',
           after : function() {
             ok(( this instanceof Miso.Engine) );
-            return false;
           }
+        },
+         { name : 'drill', 
+          from : 'loaded', 
+          to : 'drilldown'
         }
       ],
     });
     app.transition('load');
+    app.transition('drill');
   });
 
   module("Intro and Outro handlers");
@@ -143,12 +144,13 @@
       ],
     });
     app.transition('load');
+    console.log('dd', done, done.state() );
     //should have the old state during transition
-    ok(app.isState('unloaded'));
+    // ok(app.isState('unloaded'));
     //should be in transition
     //should reject attempts to change state again
-    done();
-    ok(app.isState('loaded'));
+    // done();
+    // ok(app.isState('loaded'));
 
   });
 

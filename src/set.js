@@ -2,22 +2,22 @@
 
   var Miso = global.Miso = global.Miso || {};
   
-  // function wrapper(func) {
-    // return function() {
-      // this.async = _.bind(function() {
-        // console.log('async called');
-        // this.isAsync = true;
-        // return _.bind(function() {
-          // delete this.isAsync;
-        // }, this);
+  function wrapper(func) {
+    return function() {
+      this.async = _.bind(function() {
+        console.log('async called');
+        this.isAsync = true;
+        return _.bind(function() {
+          delete this.isAsync;
+        }, this);
 
-      // }, this);
-      // func.apply(this, arguments);
-      // if (this.isAsync) {
-        // return StateMachine.ASYNC;
-      // }
-    // }
-  // }
+      }, this);
+      func.apply(this, arguments);
+      if (this.isAsync) {
+        return StateMachine.ASYNC;
+      }
+    }
+  }
 
   
   Miso.Engine = function( config ) {
@@ -25,7 +25,7 @@
     this._fsm = StateMachine.create({
       initial : config.initial,
       events : this._fsmTransitions(),
-      // error : this.error
+      error : this.error
     });
     this.states = [config.initial];
     this._bindTransitions();
@@ -40,18 +40,12 @@
       var deferred = _.Deferred(),
           _self = this;
 
-      try {
-        this._fsm.onchangestate = function() {
-          deferred.resolve();
-          _self._fsm.onchangestate = null;
-        };
-        if (this._fsm[transition](deferred) === false) {
-          deferred.reject();
-        }
-      } catch(e) {
-        console.log('ERROR', e, deferred.state());
-        deferred.reject(e);
-      }
+      this._fsm.onchangestate = function() {
+        console.log('ocs');
+        deferred.resolve();
+        _self._fsm.onchangestate = null;
+      };
+      this._fsm[transition](deferred);
       return deferred.promise();
     },
 
@@ -76,20 +70,40 @@
     },
 
     _bindTransitions : function() {
+      var engine = this;
       _.each(this.transitions, function(transition) {
         this.states.push( transition.to );
-        if (transition.before) {
+        if (transition.before || transition.intro) {
 
-          this._fsm['onbefore' + transition.name] = _.bind(function(scope, name, from, to, promise) {
+          this._fsm['onbefore' + transition.name] = _.bind(function(transitionName, from, to, promise) {
             console.log('onbefore', arguments, this);
-            var result = transition.before.apply(this);
-            if ( (transition.intro) && (result !== false) ) { 
-              transition.intro.apply(this);
-            } else {
-              return result;
+            if (transition.before && !transition.before.call(this)) {
+              promise.reject();
+              return;
+            }
+
+            if ( transition.intro ) { 
+
+              var returnValue;
+              var wrapped = function() {
+                console.log('wrapped', this);
+                this.async = function() {
+                  console.log('as!');
+                  promise.done(function() {
+                    console.log('done!, restarting transition', engine._fsm.transition);
+                    engine._fsm.transition();
+                  });
+                  returnValue = StateMachine.ASYNC;
+                  return promise;
+                }
+                transition.intro.call(this);
+              }
+
+              wrapped.call(this, promise);
+              console.log('returning', returnValue);
+              return returnValue;
             }
           }, this);
-
         }
 
         if (transition.after) {
