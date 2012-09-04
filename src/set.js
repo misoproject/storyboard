@@ -6,11 +6,26 @@
     this._buildTransitions( config.transitions );
     this._buildScenes( config.scenes || {} );
     this.current = config.initial || 'initial';
+    this._triggers = {};
     this.lastTransition;
   }
 
-  _.extend(Miso.Engine.prototype, {
+  var Engine = Miso.Engine;
+
+  Engine.errors = {
+    cannot : "Illegal state change",
+    inTransition : "Transition already in progress",
+    inState: "Already in transition to state"
+  }
+
+  _.extend(Engine.prototype, {
     error : function() {
+    },
+
+    _pubTrans : function(state, name, from, to, msg) {
+      console.log(name + state);
+      this._publish("transition." + state, name, from, to, msg);
+      this._publish(name + '.' + state, from, to, msg);
     },
 
     transition : function( transitionName ) {
@@ -21,19 +36,24 @@
       if (!transition) {
         throw "Transition '" + transitionName + "' not found!"
       }
-      
+
+      this._pubTrans('start', transitionName, this.current, transition.to);
+
       //we in the middle of a transition?
       if (this._transitioning) { 
+        this._pubTrans('fail', transitionName, this.current, transition.to, Engine.errors.inTransition);
         return complete.reject();
       }
       
       //already in a state?
       if (this.current === transitionName) {
+        this._pubTrans('fail', transitionName, this.current, transition.to, Engine.errors.inState);
         return complete.reject();
       }
 
       //if it's not a legit transition, reject it
       if ( transition.cant(this.current) ) {
+        this._pubTrans('fail', transitionName, this.current, transition.to, Engine.errors.cannot);
         return complete.reject(); 
       }
 
@@ -48,6 +68,8 @@
           introComplete = _.Deferred(),
           outroComplete = _.Deferred();
           args = Array.prototype.slice.call(arguments, 1);
+
+      this._pubTrans('valid', transitionName, this.current, transition.to);
 
       //run the from.after and to.before checks in order
       (lastTransition) ? lastTransition.after(afterComplete, toScene, fromScene, args) : afterComplete.resolve();
@@ -74,6 +96,7 @@
         
       //all events done, let's tidy up
       _.when(afterComplete, beforeComplete, introComplete, outroComplete).then(_.bind(function() {
+        this._pubTrans('end', transitionName, this.current, transition.to);
         this.lastTransition = transition;
         this.current = transition.to;
         this._transitioning = false;
@@ -115,7 +138,38 @@
         this.scenes[t.to] = (scenes[t.to] || {});
       }, this);
 
-    }
+    },
+
+    _publish : function(name) {
+      var args = _.toArray(arguments);
+      args.shift();
+
+      if (this._triggers && this._triggers[name]) {
+        _.each(this._triggers[name], function(subscription) {
+          subscription.callback.apply(subscription.context || this, args);
+        }, this);
+      }  
+    },
+
+    /**
+    * Attach a callback to an event type such as 
+    * "select" or "select.end"
+    // TK proper docs
+    */
+    subscribe : function(name, callback, context, token) {
+      this._triggers[name] = this._triggers[name] || [];
+      var subscription = {
+        callback : callback,
+        token : (token || _.uniqueId('t')),
+        context : context || this
+      };
+
+      this._triggers[name].push(subscription);
+
+      // TK why are we returning subscription token?
+      return subscription.token;
+    },
+
 
   });
 

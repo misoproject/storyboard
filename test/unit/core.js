@@ -4,6 +4,8 @@
   //TODO
   test("Deferring starting engine", function() {});
 
+  //TODO CANCEL ASYNC
+
   test("Changing synchronous states", function() {
        var app = new Miso.Engine({
       initial : 'unloaded',
