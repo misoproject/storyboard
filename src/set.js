@@ -26,6 +26,11 @@
       if (this._transitioning) { 
         return complete.reject();
       }
+      
+      //already in a state?
+      if (this.current === transitionName) {
+        return complete.reject();
+      }
 
       //if it's not a legit transition, reject it
       if ( transition.cant(this.current) ) {
@@ -45,9 +50,9 @@
           args = Array.prototype.slice.call(arguments, 1);
 
       //run the from.after and to.before checks in order
-      (lastTransition) ? lastTransition.after(afterComplete, fromScene, args) : afterComplete.resolve();
+      (lastTransition) ? lastTransition.after(afterComplete, toScene, fromScene, args) : afterComplete.resolve();
       _.when(afterComplete).then(function() {
-        transition.before(beforeComplete, toScene, args);
+        transition.before(beforeComplete, toScene, fromScene, args);
       });
 
       //Once before and after have run....
@@ -62,9 +67,9 @@
         //Run our intro and outro in order
         .then(function() {
           _.when(outroComplete).then(function() {
-            transition.intro(introComplete, toScene, args);
+            transition.intro(introComplete, toScene, fromScene, args);
           });
-          lastTransition ? lastTransition.outro(outroComplete, fromScene, args) : outroComplete.resolve();
+          lastTransition ? lastTransition.outro(outroComplete, toScene, fromScene, args) : outroComplete.resolve();
         });
         
       //all events done, let's tidy up
@@ -104,6 +109,8 @@
 
     _buildScenes : function( scenes ) {
       this.scenes = {};
+      //initial state
+      this.scenes[this.current] = {};
       _.each(this.transitions, function(t) {
         this.scenes[t.to] = (scenes[t.to] || {});
       }, this);

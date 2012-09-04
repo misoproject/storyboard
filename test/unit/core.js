@@ -33,10 +33,37 @@
     ok(app.is('unloaded'), 'initial state is unloaded as cannot go to drilldown');
     app.transition('load');
     ok(app.is('loaded'), 'state is loaded');
+    equals(app.transition('load').state(),'rejected','cannot transition to a state you are already in');
     app.transition('drilldown');
     ok(app.is('drill'), 'state is drill');
     app.transition('load');
     ok(app.is('loaded'), 'state is loaded');
+  });
+
+  test("multiple transitions between two states don't cross-fire", function() {
+      var fwd1 = 0, fwd2 = 0;
+      var app = new Miso.Engine({
+      initial : 'zero',
+      transitions : [
+        { name : 'fwd1', from : 'zero', to : 'two',
+          intro : function() { fwd1 += 1; } },
+
+        { name : 'fwd2', from : 'zero', to : 'two',
+          intro : function() { fwd2 += 1; } },
+
+        { name : 'back', from : 'two', to : 'zero' }
+      ]
+    });
+    app.transition('fwd1');
+    equals(fwd1, 1);
+    equals(fwd2, 0);
+    app.transition('fwd2');
+    equals(fwd1, 1);
+    equals(fwd2, 0);
+    app.transition('back');
+    app.transition('fwd2');
+    equals(fwd1, 1);
+    equals(fwd2, 1);
   });
 
 
@@ -177,7 +204,7 @@
     ok(app.state('loaded'));
   });
 
-  //TODO ARGUMENT PASSING
+  //TODO ARGUMENT PASSING TESTS
   
   test("handlers have access to the correct scene", function() {
       var app = new Miso.Engine({
@@ -186,28 +213,49 @@
         loaded : {
           a : 'loaded scene'
         },
-        drilldowm : {}
+        drilldown : {
+          a : 'drilldown scene'
+        }
       },
       transitions : [
         { name  : 'load', 
           from  : 'unloaded', 
           to    : 'loaded',
+          before: function() {
+            equals(this.toScene.a, 'loaded scene', 'toScene is loaded in before');
+            return true;
+          },
+          after : function() {
+            equals(this.fromScene.a, 'loaded scene', 'fromScene is loaded in after');
+            return true;
+          },
           intro : function() {
-            equals(this.scene.a, 'loaded scene');
+            equals(this.toScene.a,'loaded scene', 'toScene is loaded in intro');
           },
           outro : function() {
-            equals(this.scene.a, 'loaded scene');
+            console.log('ff', this);
+            equals(this.fromScene.a,'loaded scene', 'fromScene is loaded in outro');
           }
         },
-          { name : 'drill',
+        { name : 'drill',
           from : 'loaded',
-          to   : 'drilldown'
+          to   : 'drilldown',
+           before: function() {
+            equals(this.toScene.a, 'drilldown scene', 'toScene is drilldown in before');
+            equals(this.fromScene.a, 'loaded scene', 'fromScene is loaded in before');
+            return true;
+          },
+          intro : function() {
+            equals(this.fromScene.a, 'loaded scene', 'fromScene is loaded in intro');
+            equals(this.toScene.a,'drilldown scene', 'toScene is drilldown in intro');
+          }
         }
-
       ]
     });
-    app.transition('load');
-    app.transition('drill');
+
+    var x = app.transition('load').then(function() {
+      app.transition('drill');
+    });
   });
 
 }());

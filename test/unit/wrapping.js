@@ -1,6 +1,6 @@
 module("Transition function wrapping");
 
-test("sync non-conditional wrap that passes", 1, function() {
+test("sync non-conditional wrap", 1, function() {
 
   var pass = function() {
     return true;
@@ -10,19 +10,6 @@ test("sync non-conditional wrap that passes", 1, function() {
   var complete = _.Deferred();
   wrapped(complete);
   equal(complete.state(),'resolved');
-
-});
-
-test("sync non-conditional wrap that fails", 1, function() {
-
-  var pass = function() {
-    return false;
-  }
-
-  var wrapped = Miso.Transition.__wrap(pass);
-  var complete = _.Deferred();
-  wrapped(complete);
-  equal(complete.state(),'rejected');
 
 });
 

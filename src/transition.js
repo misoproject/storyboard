@@ -40,12 +40,12 @@
   //conditional means the return of the async function can reject
   //or resolve the deferred.
   Miso.Transition.__wrap = function(func, conditional) {
-    return function(deferred, scene, args) {
+    return function(deferred, toScene, fromScene, args) {
       var async = false,
           result;
-          console.log('ss', scene);
           context = {
-            scene : scene,
+            toScene : toScene,
+            fromScene : fromScene,
             async: function() {
               async = true;
               if (conditional) {
@@ -62,7 +62,11 @@
 
       result = func.call(context)
       if (!async) {
-        result ? deferred.resolve() : deferred.reject();
+        if (conditional) {
+          result ? deferred.resolve() : deferred.reject();
+        } else {
+          deferred.resolve();
+        }
       }
       return deferred.promise();
     }
