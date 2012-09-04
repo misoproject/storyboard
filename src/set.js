@@ -4,6 +4,7 @@
 
   Miso.Engine = function( config ) {
     this._buildTransitions( config.transitions );
+    this._buildScenes();
     this.current = config.initial || 'initial';
     this.lastEvent = 'none';
   }
@@ -96,8 +97,17 @@
         } else {
           transition = new Miso.Transition(originalTransition);
         }
-        this.transitions[transition.name] = transition;
+        this.transitions[transition.name] = transition.attach(this);
       }, this);
+    },
+
+    _buildScenes : function() {
+      this.scenes = {};
+      _.each(this.transitions, function(t) {
+        console.log(t);
+        this.scenes[t.to] = {};
+      }, this);
+
     }
 
   });

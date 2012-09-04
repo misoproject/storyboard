@@ -6,23 +6,21 @@
     this.name = config.name;
     this.from = _.isArray(config.from) ? config.from : [config.from];
     this.to = config.to;
-    this._wrapFunctions(config);
+    _.each(['before','after','intro','outro'], function(action) {
+      this[action] = config[action] ? config[action] : function() { return true; };
+    }, this);
   }
 
   _.extend(Miso.Transition.prototype, {
-    _forFsm : function() {
-      return {
-        name : this.name,
-        from : this.from,
-        to : this.to,
-      }
+    attach : function(engine) {
+      this._wrapFunctions();
+      return this;
     },
 
     _wrapFunctions : function(config) {
       _.each(['before','after','intro','outro'], function(action) {
-        config[action] = config[action] ? config[action] : function() { return true; };
         var conditional = (action === 'before' || action === 'after');
-        this[action] = Miso.Transition.__wrap(config[action], conditional);
+        this[action] = Miso.Transition.__wrap(this[action], conditional);
       }, this);
     },
 
