@@ -6,7 +6,7 @@
     this._buildTransitions( config.transitions );
     this._buildScenes( config.scenes || {} );
     this.current = config.initial || 'initial';
-    this.lastTransition = 'none';
+    this.lastTransition;
   }
 
   _.extend(Miso.Engine.prototype, {
@@ -45,9 +45,9 @@
           args = Array.prototype.slice.call(arguments, 1);
 
       //run the from.after and to.before checks in order
-      (lastTransition && lastTransition.after) ? lastTransition.after(afterComplete, fromScene, args) : afterComplete.resolve();
+      (lastTransition) ? lastTransition.after(afterComplete, fromScene, args) : afterComplete.resolve();
       _.when(afterComplete).then(function() {
-        transition.before ? transition.before(beforeComplete, toScene, args) : beforeComplete.resolve();
+        transition.before(beforeComplete, toScene, args);
       });
 
       //Once before and after have run....
@@ -55,7 +55,6 @@
 
         //If our before or after fails, bail out here.
         .fail(_.bind(function() {
-          console.log('failed!');
           this._transitioning = false;
           complete.reject();
         }, this))
@@ -63,9 +62,9 @@
         //Run our intro and outro in order
         .then(function() {
           _.when(outroComplete).then(function() {
-            transition.intro ? transition.intro(introComplete, toScene, args) : introComplete.resolve();
+            transition.intro(introComplete, toScene, args);
           });
-          (lastTransition && lastTransition.outro) ? lastTransition.outro(outroComplete, fromScene, args) : outroComplete.resolve();
+          lastTransition ? lastTransition.outro(outroComplete, fromScene, args) : outroComplete.resolve();
         });
         
       //all events done, let's tidy up
@@ -73,7 +72,6 @@
         this.lastTransition = transition;
         this.current = transition.to;
         this._transitioning = false;
-        console.log('complete!', this.current, this.lastTransition);
         complete.resolve();
       }, this));
       return complete;
