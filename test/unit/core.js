@@ -205,7 +205,41 @@
   });
 
   //TODO ARGUMENT PASSING TESTS
+  test("handlers have access arguments passed to transition", 8, function() {
+    var done;
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      transitions : [
+        { name : 'load', 
+          from : 'unloaded', 
+          to : 'loaded',
+          intro : function(a, b) {
+            equals(a, 44);
+            equals(b.power, 'full');
+          },
+          outro : function(a, b) {
+            equals(a, 44);
+            equals(b.power, 'full');
+          },
+          before : function(a, b) {
+            equals(a, 44);
+            equals(b.power, 'full');
+            return true;
+          },
+          after : function(a, b) {
+            equals(a, 44);
+            equals(b.power, 'full');
+            return true;
+          }
+        },
+        { name : 'go', from : 'loaded', to : 'stacked' }
+      ]
+    });
+    app.transition('load', 44, { power : 'full' });
+    app.transition('go', 44, { power : 'full' });
   
+  });
+
   test("handlers have access to the correct scene", function() {
       var app = new Miso.Engine({
       initial : 'unloaded',

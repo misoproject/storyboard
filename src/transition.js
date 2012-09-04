@@ -60,7 +60,7 @@
             }
           };
 
-      result = func.call(context)
+      result = func.apply(context, args)
       if (!async) {
         if (conditional) {
           result ? deferred.resolve() : deferred.reject();
