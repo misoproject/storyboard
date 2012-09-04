@@ -4,14 +4,13 @@
   //TODO
   test("Deferring starting engine", function() {});
 
-    var app = new Miso.Engine({
+  test("Changing synchronous states", function() {
+       var app = new Miso.Engine({
       initial : 'unloaded',
       transitions : [
-        { name : 'load', from : 'unloaded', to : 'loaded' }
+        { name : 'load', from : ['unloaded', 'drill'], to : 'loaded' }
       ]
     });
-
-  test("Changing synchronous states", function() {
     equals(app.state(), 'unloaded', 'initial state is unloaded');
     ok(app.is('unloaded'), 'initial state is unloaded');
     var done = app.transition('load');
@@ -25,7 +24,7 @@
       transitions : [
         { name : 'load', from : ['unloaded', 'drill'], to : 'loaded' },
         { name : 'drilldown', from : ['loaded'], to : 'drill' }
-      ],
+      ]
     });
 
     ok(app.is('unloaded'), 'initial state is unloaded');
@@ -92,42 +91,68 @@
     equals(app.state(), 'loaded');
   });
 
-  // test("Scope for before callback is the engine", 1, function() {
-  // var app = new Miso.Engine({
-      // initial : 'unloaded',
-      // transitions : [
-        // { name : 'load', 
-          // from : 'unloaded', 
-          // to : 'loaded',
-          // before : function() {
-            // ok(( this instanceof Miso.Engine) );
-          // }
-        // }
-      // ],
-    // });
-    // app.transition('load');
-  // });
+  test("async fail on after stops transition", 5, function() {
+    var pass;
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      transitions : [
+        { name  : 'load', 
+          from  : 'unloaded', 
+          to    : 'loaded',
+          after : function() {
+            pass = this.async();
+          }
+        },
+        { name : 'drill',
+          from : 'loaded',
+          to   : 'drilldown'
+        }
+      ],
+    });
 
-  // test("Scope for after callback is the engine", 1, function() {
-     // var app = new Miso.Engine({
-      // initial : 'unloaded',
-      // transitions : [
-        // { name : 'load', 
-          // from : 'unloaded', 
-          // to : 'loaded',
-          // after : function() {
-            // ok(( this instanceof Miso.Engine) );
-          // }
-        // },
-         // { name : 'drill', 
-          // from : 'loaded', 
-          // to : 'drilldown'
-        // }
-      // ],
-    // });
-    // app.transition('load');
-    // app.transition('drill');
-  // });
+    app.transition('load');
+    equals(app.state(), 'loaded');
+    var promise = app.transition('drill'); 
+    ok(app.inTransition());
+    pass(false);
+    promise.fail(function() {
+      ok(true);
+    });
+    ok(!app.inTransition());
+    equals(app.state(), 'loaded');
+  });
+
+   test("async pass on after completes transition", 6, function() {
+    var pass;
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      transitions : [
+        { name  : 'load', 
+          from  : 'unloaded', 
+          to    : 'loaded',
+          after : function() {
+            pass = this.async();
+          }
+        },
+        { name : 'drill',
+          from : 'loaded',
+          to   : 'drilldown'
+        }
+      ],
+    });
+
+    app.transition('load');
+    equals(app.state(), 'loaded');
+    var promise = app.transition('drill'); 
+    ok(app.inTransition());
+    equals(app.state(), 'loaded');
+    pass(true);
+    promise.done(function() {
+      ok(true);
+    });
+    ok(!app.inTransition());
+    equals(app.state(), 'drilldown');
+  });
 
   module("Intro and Outro handlers");
   test("Asynchronous intro", function() {
@@ -150,7 +175,39 @@
     ok(app.transition('load').state(),'rejected', "can't start a second transition");
     done();
     ok(app.state('loaded'));
+  });
 
+  //TODO ARGUMENT PASSING
+  
+  test("handlers have access to the correct scene", function() {
+      var app = new Miso.Engine({
+      initial : 'unloaded',
+      scenes : {
+        loaded : {
+          a : 'loaded scene'
+        },
+        drilldowm : {}
+      },
+      transitions : [
+        { name  : 'load', 
+          from  : 'unloaded', 
+          to    : 'loaded',
+          intro : function() {
+            equals(this.scene.a, 'loaded scene');
+          },
+          outro : function() {
+            equals(this.scene.a, 'loaded scene');
+          }
+        },
+          { name : 'drill',
+          from : 'loaded',
+          to   : 'drilldown'
+        }
+
+      ]
+    });
+    app.transition('load');
+    app.transition('drill');
   });
 
 }());

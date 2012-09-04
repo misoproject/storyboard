@@ -20,6 +20,7 @@
     _wrapFunctions : function(config) {
       _.each(['before','after','intro','outro'], function(action) {
         var conditional = (action === 'before' || action === 'after');
+
         this[action] = Miso.Transition.__wrap(this[action], conditional);
       }, this);
     },
@@ -39,10 +40,12 @@
   //conditional means the return of the async function can reject
   //or resolve the deferred.
   Miso.Transition.__wrap = function(func, conditional) {
-    return function(deferred) {
+    return function(deferred, scene, args) {
       var async = false,
           result;
+          console.log('ss', scene);
           context = {
+            scene : scene,
             async: function() {
               async = true;
               if (conditional) {

@@ -4,9 +4,9 @@
 
   Miso.Engine = function( config ) {
     this._buildTransitions( config.transitions );
-    this._buildScenes();
+    this._buildScenes( config.scenes || {} );
     this.current = config.initial || 'initial';
-    this.lastEvent = 'none';
+    this.lastTransition = 'none';
   }
 
   _.extend(Miso.Engine.prototype, {
@@ -35,16 +35,19 @@
       this._transitioning = true;
       var from = this.current,
           to = transition.to,
-          lastEvent = this.lastEvent,
+          toScene = this.scenes[to],
+          fromScene = this.scenes[from],
+          lastTransition = this.lastTransition,
           afterComplete = _.Deferred(),
           beforeComplete = _.Deferred(),
           introComplete = _.Deferred(),
           outroComplete = _.Deferred();
+          args = Array.prototype.slice.call(arguments, 1);
 
       //run the from.after and to.before checks in order
-      (lastEvent && lastEvent.after) ? lastEvent.after(afterComplete) : afterComplete.resolve();
+      (lastTransition && lastTransition.after) ? lastTransition.after(afterComplete, fromScene, args) : afterComplete.resolve();
       _.when(afterComplete).then(function() {
-        transition.before ? transition.before(beforeComplete) : beforeComplete.resolve();
+        transition.before ? transition.before(beforeComplete, toScene, args) : beforeComplete.resolve();
       });
 
       //Once before and after have run....
@@ -60,17 +63,17 @@
         //Run our intro and outro in order
         .then(function() {
           _.when(outroComplete).then(function() {
-            transition.intro ? transition.intro(introComplete) : introComplete.resolve();
+            transition.intro ? transition.intro(introComplete, toScene, args) : introComplete.resolve();
           });
-          (lastEvent && lastEvent.outro) ? lastEvent.outro(outroComplete) : outroComplete.resolve();
+          (lastTransition && lastTransition.outro) ? lastTransition.outro(outroComplete, fromScene, args) : outroComplete.resolve();
         });
         
       //all events done, let's tidy up
       _.when(afterComplete, beforeComplete, introComplete, outroComplete).then(_.bind(function() {
-        this.lastEvent = transition;
+        this.lastTransition = transition;
         this.current = transition.to;
         this._transitioning = false;
-        console.log('complete!', this.current, this.lastEvent);
+        console.log('complete!', this.current, this.lastTransition);
         complete.resolve();
       }, this));
       return complete;
@@ -101,11 +104,10 @@
       }, this);
     },
 
-    _buildScenes : function() {
+    _buildScenes : function( scenes ) {
       this.scenes = {};
       _.each(this.transitions, function(t) {
-        console.log(t);
-        this.scenes[t.to] = {};
+        this.scenes[t.to] = (scenes[t.to] || {});
       }, this);
 
     }
