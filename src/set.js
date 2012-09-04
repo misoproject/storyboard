@@ -1,132 +1,79 @@
 (function(global, _, $) {
 
   var Miso = global.Miso = global.Miso || {};
-  
-  function wrapper(func) {
-    return function() {
-      this.async = _.bind(function() {
-        console.log('async called');
-        this.isAsync = true;
-        return _.bind(function() {
-          delete this.isAsync;
-        }, this);
 
-      }, this);
-      func.apply(this, arguments);
-      if (this.isAsync) {
-        return StateMachine.ASYNC;
-      }
-    }
-  }
-
-  
   Miso.Engine = function( config ) {
     this._buildTransitions( config.transitions );
-    this._fsm = StateMachine.create({
-      initial : config.initial,
-      events : this._fsmTransitions(),
-      error : this.error
-    });
-    this.states = [config.initial];
-    this._bindTransitions();
+    this.current = config.initial || 'initial';
+    this.lastEvent = 'none';
   }
 
   _.extend(Miso.Engine.prototype, {
     error : function() {
-      console.log('error', arguments);
     },
 
-    transition : function( transition ) {
-      var deferred = _.Deferred(),
-          _self = this;
+    transition : function( transitionName ) {
+      var transition = this.transitions[transitionName];
+      if (!transition) {
+        throw "Transition '" + transitionName + "' not found!"
+      }
 
-      this._fsm.onchangestate = function() {
-        console.log('ocs');
-        deferred.resolve();
-        _self._fsm.onchangestate = null;
-      };
-      this._fsm[transition](deferred);
-      return deferred.promise();
+      var from = this.current,
+      to = transition.to,
+      lastEvent = this.lastEvent,
+      complete = _.Deferred(),
+      afterComplete = _.Deferred(),
+      beforeComplete = _.Deferred(),
+      introComplete = _.Deferred(),
+      outroComplete = _.Deferred();
+      this.transitioning = true;
+
+      //run the from.after and to.before checks
+      (lastEvent && lastEvent.after) ? lastEvent.after(afterComplete) : afterComplete.resolve();
+      _.when(afterComplete).then(function() {
+        transition.before ? transition.before(beforeComplete) : beforeComplete.resolve();
+      });
+
+      //Run outro then intro
+      _.when(afterComplete, beforeComplete).then(function() {
+        _.when(outroComplete).then(function() {
+          transition.intro ? transition.intro(introComplete) : introComplete.resolve();
+        });
+        (lastEvent && lastEvent.outro) ? lastEvent.outro(outroComplete) : outroComplete.resolve();
+      });
+
+      //all events done, let's tidy up
+      _.when(afterComplete, beforeComplete, introComplete, outroComplete).then(_.bind(function() {
+        this.lastEvent = transition;
+        this.current = transition.to;
+        this.transitioning = false;
+        console.log('complete!', this.current, this.lastEvent);
+        complete.resolve();
+      }, this));
+      return complete;
     },
 
-    getState : function() {
-      return this._fsm.current;
+    state : function() {
+      return this.current;
     },
 
-    isState : function( state ) {
-      return ( state === this._fsm.current );
+    is : function( state ) {
+      return (state === this.current);
     },
 
     _buildTransitions : function( transitions ) {
-      this.transitions = _.map(transitions, function(originalTransition) {
+      this.transitions = {};
+      _.each(transitions, function(originalTransition) {
         var transition;
         if (transition instanceof Miso.Transition) {
           transition = originalTransition;
         } else {
           transition = new Miso.Transition(originalTransition);
         }
-        return transition;
+        this.transitions[transition.name] = transition;
       }, this);
-    },
-
-    _bindTransitions : function() {
-      var engine = this;
-      _.each(this.transitions, function(transition) {
-        this.states.push( transition.to );
-        if (transition.before || transition.intro) {
-
-          this._fsm['onbefore' + transition.name] = _.bind(function(transitionName, from, to, promise) {
-            console.log('onbefore', arguments, this);
-            if (transition.before && !transition.before.call(this)) {
-              promise.reject();
-              return;
-            }
-
-            if ( transition.intro ) { 
-
-              var returnValue;
-              var wrapped = function() {
-                console.log('wrapped', this);
-                this.async = function() {
-                  console.log('as!');
-                  promise.done(function() {
-                    console.log('done!, restarting transition', engine._fsm.transition);
-                    engine._fsm.transition();
-                  });
-                  returnValue = StateMachine.ASYNC;
-                  return promise;
-                }
-                transition.intro.call(this);
-              }
-
-              wrapped.call(this, promise);
-              console.log('returning', returnValue);
-              return returnValue;
-            }
-          }, this);
-        }
-
-        if (transition.after) {
-          this._fsm['onleave' + transition.to] = _.bind(transition.after, this);
-        }
-
-
-      }, this);
-
-      _.each(this.states, function(state) {
-
-      });
-    },
-
-    _fsmTransitions : function() {
-      return _.map(this.transitions, function(transition) {
-        return transition._forFsm();
-      });
     }
 
-  
   });
 
 }(this, _, $));
-
-

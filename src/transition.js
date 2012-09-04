@@ -2,8 +2,6 @@
 
   var Miso = global.Miso = global.Miso || {};
 
-  StateMachine.CANCELLED = false;
-
   Miso.Transition = function( config ) {
     this.name = config.name;
     this.from = config.from;
