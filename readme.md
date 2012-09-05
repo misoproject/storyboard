@@ -15,6 +15,8 @@ var app = new Miso.Engine({
 app.transition('load')
 ```
 
+## Transitions ##
+
 The definition of a transition consists of a `name` parameter, which states it is possible to execute the transition in, `from` and what state the transition takes you to, `to`. It is possible to define multiple from states by passing them as an array and you can define multiple ways of moving between the same states.
 
 Transitions can also be defined separately and then passed to to help code organisation:
@@ -81,7 +83,7 @@ var app = new Miso.Engine({
 });
 ```
 
-The transition call itself returns a deferred promise that can be used to delay code executino until a transition is complete.
+The transition call itself returns a deferred promise that can be used to delay code execution until a transition is complete.
 ```javascript
 var promise = app.transition('load');
 promise.done(function() {
@@ -119,11 +121,14 @@ var app = new Miso.Engine({
 
 ## Events ##
 
-The engine object itself also allows for subscripts to events that happen around transitions on both a global and a per-transition basis.
+The engine object itself also allows for subscriptions to events that happen around transitions on both a global and a per-transition basis.
 ```javascript```
+//completion of the load transition
 app.subscribe('load.end', function(from, to) {
   console.log('loading transition complete');
 });
+
+//failures on all transitions
 app.subscribe('transition.fail', function(transition, from, to, msg) {
   console.log('transition ' + transition + ' to ' + to 'failed!');
 });

@@ -20,7 +20,6 @@
 
   _.extend(Engine.prototype, {
     _pubTrans : function(state, name, from, to, msg) {
-      console.log(name + state);
       this._publish("transition." + state, name, from, to, msg);
       this._publish(name + '.' + state, from, to, msg);
     },
