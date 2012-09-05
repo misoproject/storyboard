@@ -3,8 +3,35 @@
 
   //TODO
   test("Deferring starting engine", function() {});
+  //TODO Unsubscribe
 
-  //TODO CANCEL ASYNC
+  test("Cancelling a transition in progress", 4, function() {
+    var done;
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      transitions : [
+        { name : 'load', 
+          from : 'unloaded', 
+          to : 'loaded',
+          intro : function() {
+            done = this.async();
+          }
+        }
+      ]
+    });
+    var promise = app.transition('load');
+    ok(app.inTransition(), 'entered transition');
+    promise.fail(function() {
+      ok(true, "transition promise rejected");
+    });
+    app.cancelTransition();
+    ok(!app.inTransition(), 'no longer in transition');
+    var promise = app.transition('load');
+    promise.done(function() {
+      ok(true, "second attempt succeeds");
+    });
+    done();
+  });
 
   test("Changing synchronous states", function() {
        var app = new Miso.Engine({
@@ -78,7 +105,6 @@
           from : 'unloaded', 
           to : 'loaded',
           before : function() {
-            console.log('bef!');
             return false;
           }
         }

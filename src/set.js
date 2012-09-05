@@ -24,9 +24,14 @@
       this._publish(name + '.' + state, from, to, msg);
     },
 
+    cancelTransition : function() {
+      this._complete.reject();
+      this._transitioning = false;
+    },
+
     transition : function( transitionName ) {
       var transition = this.transitions[transitionName],
-          complete = _.Deferred();
+          complete = this._complete = _.Deferred();
 
       //Can't fire a transition that isn't defined
       if (!transition) {
