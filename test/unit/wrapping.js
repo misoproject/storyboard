@@ -1,59 +1,55 @@
-module("Transition function wrapping");
+(function() {
+  module("Scene function wrapping");
 
-test("sync non-conditional wrap", 1, function() {
+  var engineStub = { data : {}, engine : { data : {} } };
 
-  var pass = function() {
-    return true;
-  }
+  test("sync wrap", 1, function() {
+    var pass = function() {
+      return true;
+    }
 
-  var wrapped = Miso.Transition.__wrap(pass);
-  var complete = _.Deferred();
-  wrapped(complete);
-  equal(complete.state(),'resolved');
+    var wrapped = Miso.Scene.__wrap(pass, engineStub);
+    var complete = _.Deferred();
+    wrapped(complete);
+    equal(complete.state(),'resolved');
 
-});
+  });
 
-test("async non-conditional wrap", 1, function() {
+  test("sync wrap that fails", 1, function() {
+    var pass = function() {
+      return false;
+    }
 
-  var pass = function() {
-    var done = this.async();
-    done();
-  }
+    var wrapped = Miso.Scene.__wrap(pass, engineStub);
+    var complete = _.Deferred();
+    wrapped(complete);
+    equal(complete.state(),'rejected');
 
-  var wrapped = Miso.Transition.__wrap(pass);
-  var complete = _.Deferred();
-  wrapped(complete);
-  equal(complete.state(),'resolved');
+  });
 
-});
+  test("async wrap that passes", 1, function() {
+    var pass = function() {
+      var done = this.async();
+      done(true);
+    }
 
-test("async conditional wrap that passes", 1, function() {
+    var wrapped = Miso.Scene.__wrap(pass, engineStub);
+    var complete = _.Deferred();
+    wrapped(complete);
+    equal(complete.state(),'resolved');
 
-  var pass = function() {
-    var done = this.async();
-    done(true);
-  }
+  });
 
-  var wrapped = Miso.Transition.__wrap(pass, true);
-  var complete = _.Deferred();
-  wrapped(complete);
-  equal(complete.state(),'resolved');
+  test("async wrap that fails", 1, function() {
+    var pass = function() {
+      var done = this.async();
+      done(false);
+    }
 
-});
+    var wrapped = Miso.Scene.__wrap(pass, engineStub);
+    var complete = _.Deferred();
+    wrapped(complete);
+    equal(complete.state(),'rejected');
 
-test("async conditional wrap that fails", 1, function() {
-
-  var pass = function() {
-    var done = this.async();
-    done(false);
-  }
-
-  var wrapped = Miso.Transition.__wrap(pass, true);
-  var complete = _.Deferred();
-  wrapped(complete);
-  equal(complete.state(),'rejected');
-
-});
-
-
-
+  });
+}());

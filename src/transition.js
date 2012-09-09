@@ -2,71 +2,51 @@
 
   var Miso = global.Miso = (global.Miso || {});
 
-  Miso.Transition = function( config ) {
-    this.name = config.name;
-    this.from = _.isArray(config.from) ? config.from : [config.from];
-    this.to = config.to;
-    _.each(['before','after','intro','outro'], function(action) {
+  Miso.Scene = function( config ) {
+    console.log('ns', arguments);
+    this.name = name;
+    this.data = config.data || {}
+    _.each(['onEnter','onExit'], function(action) {
       this[action] = config[action] ? config[action] : function() { return true; };
     }, this);
   }
 
-  _.extend(Miso.Transition.prototype, {
-    attach : function(engine) {
+  _.extend(Miso.Scene.prototype, {
+    attach : function(name, engine) {
+      this.name = name;
+      this.engine = engine;
       this._wrapFunctions();
-      return this;
     },
 
     _wrapFunctions : function(config) {
-      _.each(['before','after','intro','outro'], function(action) {
-        var conditional = (action === 'before' || action === 'after');
-
-        this[action] = Miso.Transition.__wrap(this[action], conditional);
+      _.each(['onEnter','onExit'], function(action) {
+        this[action.replace(/onE/,'e')] = Miso.Scene.__wrap(this[action], this);
       }, this);
     },
-
-    can : function(stateName) {
-      return (_.indexOf(this.from, stateName) !== -1)
-    },
-
-    cant : function(stateName) {
-      return !this.can(stateName);
-    }
 
   });
 
   //wrap functions so they can declare themselves as optionally
   //asynchronous without having to worry about deferred management.
-  //conditional means the return of the async function can reject
-  //or resolve the deferred.
-  Miso.Transition.__wrap = function(func, conditional) {
-    return function(deferred, toScene, fromScene, args) {
+  Miso.Scene.__wrap = function(func, scene) {
+    return function(deferred, args) {
       var async = false,
           result;
           context = {
-            toScene : toScene,
-            fromScene : fromScene,
+            scene : scene.data,
+            global : scene.engine.data,
             async: function() {
               async = true;
-              if (conditional) {
-                return function(pass) {
-                  pass ? deferred.resolve() : deferred.reject();
-                }
-              } else {
-                return function() {
-                  deferred.resolve();
-                }
+              return function(pass) {
+                pass ? deferred.resolve() : deferred.reject();
               }
             }
           };
 
       result = func.apply(context, args)
+      console.log('rr', result);
       if (!async) {
-        if (conditional) {
-          result ? deferred.resolve() : deferred.reject();
-        } else {
-          deferred.resolve();
-        }
+        result ? deferred.resolve() : deferred.reject();
       }
       return deferred.promise();
     }

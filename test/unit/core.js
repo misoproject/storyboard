@@ -1,48 +1,48 @@
 (function() {
-  module("Scene Basics");
 
-  //TODO
-  test("Deferring starting engine", function() {});
-  //TODO Unsubscribe
+  // //TODO
+  // test("Deferring starting engine", function() {});
+  // //TODO Unsubscribe
+ //TODO test passing in deferred
 
-  test("Cancelling a transition in progress", 4, function() {
-    var done;
-    var app = new Miso.Engine({
-      initial : 'unloaded',
-      transitions : [
-        { name : 'load', 
-          from : 'unloaded', 
-          to : 'loaded',
-          intro : function() {
-            done = this.async();
-          }
-        }
-      ]
-    });
-    var promise = app.transition('load');
-    ok(app.inTransition(), 'entered transition');
-    promise.fail(function() {
-      ok(true, "transition promise rejected");
-    });
-    app.cancelTransition();
-    ok(!app.inTransition(), 'no longer in transition');
-    var promise = app.transition('load');
-    promise.done(function() {
-      ok(true, "second attempt succeeds");
-    });
-    done();
-  });
+  // test("Cancelling a transition in progress", 4, function() {
+    // var done;
+    // var app = new Miso.Engine({
+      // initial : 'unloaded',
+      // transitions : [
+        // { name : 'load', 
+          // from : 'unloaded', 
+          // to : 'loaded',
+          // intro : function() {
+            // done = this.async();
+          // }
+        // }
+      // ]
+    // });
+    // var promise = app.transition('load');
+    // ok(app.inTransition(), 'entered transition');
+    // promise.fail(function() {
+      // ok(true, "transition promise rejected");
+    // });
+    // app.cancelTransition();
+    // ok(!app.inTransition(), 'no longer in transition');
+    // var promise = app.transition('load');
+    // promise.done(function() {
+      // ok(true, "second attempt succeeds");
+    // });
+    // done();
+  // });
 
   test("Changing synchronous states", function() {
-       var app = new Miso.Engine({
+    var app = new Miso.Engine({
       initial : 'unloaded',
-      transitions : [
-        { name : 'load', from : ['unloaded', 'drill'], to : 'loaded' }
-      ]
+      scenes : {
+        'unloaded' : {},
+        'loaded' : {}
+      }
     });
-    equals(app.state(), 'unloaded', 'initial state is unloaded');
-    ok(app.is('unloaded'), 'initial state is unloaded');
-    var done = app.transition('load');
+    equals(app.scene(), 'unloaded', 'initial state is unloaded');
+    var done = app.to('loaded');
     ok(app.is('loaded'), 'changed state is loaded');
     equals(done.state(), 'resolved');
   });
@@ -50,274 +50,186 @@
   test("Changing between multiple synchronous states", function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
-      transitions : [
-        { name : 'load', from : ['unloaded', 'drill'], to : 'loaded' },
-        { name : 'drilldown', from : ['loaded'], to : 'drill' }
-      ]
+      scenes : {
+        'unloaded' : {},
+        'loaded' : {},
+        'drilldown' : {}
+      },
     });
 
     ok(app.is('unloaded'), 'initial state is unloaded');
-    var done = app.transition('drilldown');
-    equal(done.state(), 'rejected', 'reject transition to drilldown');
-    ok(app.is('unloaded'), 'initial state is unloaded as cannot go to drilldown');
-    app.transition('load');
+    app.to('loaded');
     ok(app.is('loaded'), 'state is loaded');
-    equals(app.transition('load').state(),'rejected','cannot transition to a state you are already in');
-    app.transition('drilldown');
-    ok(app.is('drill'), 'state is drill');
-    app.transition('load');
+    app.to('drilldown');
+    ok(app.is('drilldown'), 'state is drill');
+    app.to('loaded');
     ok(app.is('loaded'), 'state is loaded');
   });
-
-  test("multiple transitions between two states don't cross-fire", function() {
-      var fwd1 = 0, fwd2 = 0;
-      var app = new Miso.Engine({
-      initial : 'zero',
-      transitions : [
-        { name : 'fwd1', from : 'zero', to : 'two',
-          intro : function() { fwd1 += 1; } },
-
-        { name : 'fwd2', from : 'zero', to : 'two',
-          intro : function() { fwd2 += 1; } },
-
-        { name : 'back', from : 'two', to : 'zero' }
-      ]
-    });
-    app.transition('fwd1');
-    equals(fwd1, 1);
-    equals(fwd2, 0);
-    app.transition('fwd2');
-    equals(fwd1, 1);
-    equals(fwd2, 0);
-    app.transition('back');
-    app.transition('fwd2');
-    equals(fwd1, 1);
-    equals(fwd2, 1);
-  });
-
 
   module("Before and After handlers");
-  test("returning false on before stops transition", 2, function() {
+  test("returning false on onEnter stops transition", 2, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
-      transitions : [
-        { name : 'load', 
-          from : 'unloaded', 
-          to : 'loaded',
-          before : function() {
+      scenes : {
+        'unloaded' : {},
+        'loaded' : {
+          onEnter : function() {
             return false;
           }
         }
-      ],
+      },
     });
 
-    var promise = app.transition('load');
+    var promise = app.to('loaded');
 
     promise.fail(function() {
       ok(true);
     });
-    equals(app.state(), 'unloaded');
+    equals(app.scene(), 'unloaded');
   });
 
-  test("returning false on after stops transition", 3, function() {
+  test("returning false on after stops transition", 2, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
-      transitions : [
-        { name  : 'load', 
-          from  : 'unloaded', 
-          to    : 'loaded',
-          after : function() {
+      scenes : {
+        loaded : {},
+        unloaded : {
+          onExit: function() {
             return false;
           }
-        },
-        { name : 'drill',
-          from : 'loaded',
-          to   : 'drilldown'
         }
-      ],
+      },
     });
 
-    app.transition('load');
-    equals(app.state(), 'loaded');
-    var promise = app.transition('drill'); 
+    var promise = app.to('loaded'); 
     promise.fail(function() {
       ok(true);
     });
-    equals(app.state(), 'loaded');
+    equals(app.scene(), 'unloaded');
   });
 
-  test("async fail on after stops transition", 5, function() {
+  test("async fail on onExit stops transition", 4, function() {
     var pass;
     var app = new Miso.Engine({
       initial : 'unloaded',
-      transitions : [
-        { name  : 'load', 
-          from  : 'unloaded', 
-          to    : 'loaded',
-          after : function() {
+      scenes : {
+        unloaded : {
+         onExit : function() {
             pass = this.async();
           }
         },
-        { name : 'drill',
-          from : 'loaded',
-          to   : 'drilldown'
-        }
-      ],
+        loaded : {}
+      }
     });
 
-    app.transition('load');
-    equals(app.state(), 'loaded');
-    var promise = app.transition('drill'); 
+    var promise = app.to('loaded'); 
     ok(app.inTransition());
     pass(false);
     promise.fail(function() {
       ok(true);
     });
     ok(!app.inTransition());
-    equals(app.state(), 'loaded');
+    equals(app.scene(), 'unloaded');
   });
 
-   test("async pass on after completes transition", 6, function() {
-    var pass;
-    var app = new Miso.Engine({
-      initial : 'unloaded',
-      transitions : [
-        { name  : 'load', 
-          from  : 'unloaded', 
-          to    : 'loaded',
-          after : function() {
-            pass = this.async();
-          }
-        },
-        { name : 'drill',
-          from : 'loaded',
-          to   : 'drilldown'
-        }
-      ],
-    });
+   test("async pass on onExit completes transition", 5, function() {
+     var pass;
+     var app = new Miso.Engine({
+       initial : 'unloaded',
+       scenes : {
+         unloaded : {
+           onExit : function() {
+             pass = this.async();
+           }
+         },
+         loaded : {}
+       }
+     });
 
-    app.transition('load');
-    equals(app.state(), 'loaded');
-    var promise = app.transition('drill'); 
+    var promise = app.to('loaded'); 
     ok(app.inTransition());
-    equals(app.state(), 'loaded');
+    equals(app.scene(), 'unloaded');
     pass(true);
     promise.done(function() {
       ok(true);
     });
     ok(!app.inTransition());
-    equals(app.state(), 'drilldown');
+    equals(app.scene(), 'loaded');
   });
 
-  module("Intro and Outro handlers");
-  test("Asynchronous intro", function() {
+  test("Asynchronous onEnter", function() {
       var done;
       var app = new Miso.Engine({
       initial : 'unloaded',
-      transitions : [
-        { name : 'load', 
-          from : 'unloaded', 
-          to : 'loaded',
-          intro : function() {
+      scenes : {
+        unloaded : {},
+        loaded : {
+          onEnter : function() {
             done = this.async();
           }
         }
-      ]
+      }
     });
-    app.transition('load');
-    ok(app.state('unloaded'), "should still be unloaded during transition");
+    app.to('loaded');
+    ok(app.scene('unloaded'), "should still be unloaded during transition");
     ok(app.inTransition(), "should be in transition");
-    ok(app.transition('load').state(),'rejected', "can't start a second transition");
+    ok(app.to('loaded').state(),'rejected', "can't start a second transition");
     done();
-    ok(app.state('loaded'));
+    ok(app.scene('loaded'));
+    ok(!app.inTransition(), "should no longer be in transition");
   });
 
-  //TODO ARGUMENT PASSING TESTS
-  test("handlers have access arguments passed to transition", 8, function() {
-    var done;
+  test("handlers have access arguments passed to transition", 4, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
-      transitions : [
-        { name : 'load', 
-          from : 'unloaded', 
-          to : 'loaded',
-          intro : function(a, b) {
+      scenes : {
+        unloaded : {
+          onExit : function(a, b) {
             equals(a, 44);
             equals(b.power, 'full');
-          },
-          outro : function(a, b) {
-            equals(a, 44);
-            equals(b.power, 'full');
-          },
-          before : function(a, b) {
-            equals(a, 44);
-            equals(b.power, 'full');
-            return true;
-          },
-          after : function(a, b) {
-            equals(a, 44);
-            equals(b.power, 'full');
-            return true;
           }
         },
-        { name : 'go', from : 'loaded', to : 'stacked' }
-      ]
+        loaded : {
+          onEnter : function(a, b) {
+            equals(a, 44);
+            equals(b.power, 'full');
+          }
+        }
+      }
     });
-    app.transition('load', 44, { power : 'full' });
-    app.transition('go', 44, { power : 'full' });
-  
+
+    app.to('loaded', 44, { power : 'full' });
   });
 
-  test("handlers have access to the correct scene", function() {
-      var app = new Miso.Engine({
+  test("handlers have access to the correct scene and global data", 4, function() {
+     var app = new Miso.Engine({
       initial : 'unloaded',
-      scenes : {
-        loaded : {
-          a : 'loaded scene'
-        },
-        drilldown : {
-          a : 'drilldown scene'
-        }
+      data : {
+        power : 'full'
       },
-      transitions : [
-        { name  : 'load', 
-          from  : 'unloaded', 
-          to    : 'loaded',
-          before: function() {
-            equals(this.toScene.a, 'loaded scene', 'toScene is loaded in before');
-            return true;
-          },
-          after : function() {
-            equals(this.fromScene.a, 'loaded scene', 'fromScene is loaded in after');
-            return true;
-          },
-          intro : function() {
-            equals(this.toScene.a,'loaded scene', 'toScene is loaded in intro');
-          },
-          outro : function() {
-            console.log('ff', this);
-            equals(this.fromScene.a,'loaded scene', 'fromScene is loaded in outro');
+      scenes : {
+        unloaded : {
+          data : { a : 44 },
+          onExit : function() {
+            equals(this.scene.a, 44);
+            equals(this.global.power, 'full');
           }
         },
-        { name : 'drill',
-          from : 'loaded',
-          to   : 'drilldown',
-           before: function() {
-            equals(this.toScene.a, 'drilldown scene', 'toScene is drilldown in before');
-            equals(this.fromScene.a, 'loaded scene', 'fromScene is loaded in before');
-            return true;
-          },
-          intro : function() {
-            equals(this.fromScene.a, 'loaded scene', 'fromScene is loaded in intro');
-            equals(this.toScene.a,'drilldown scene', 'toScene is drilldown in intro');
+        loaded : {
+          data : { a : 'test' },
+          onEnter : function() {
+            equals(this.global.power, 'full');
+            equals(this.scene.a, 'test');
           }
         }
-      ]
+      }
     });
 
-    var x = app.transition('load').then(function() {
-      app.transition('drill');
-    });
+    app.to('loaded');
+
+  });
+
+  test("handlers have access to an engine data object", function() {
   });
 
 }());
