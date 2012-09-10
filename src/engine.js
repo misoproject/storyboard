@@ -4,19 +4,26 @@
 
   Miso.Engine = function( config ) {
     this._buildScenes( config.scenes );
-    this.data = config.data || {};
     this._triggers = {};
+
+     //attach extra methods
+    _.each(config, function(prop, name) {
+      if (_.indexOf(Engine.BLACKLIST, name) !== -1) { return }
+      this[name] = prop;
+    }, this);
 
     if (config.defer) {
       this._initial = config.initial;
     } else {
       this.to(config.initial);
     }
+   
   }
 
   var Engine = Miso.Engine;
 
   Engine.ERRORS = {};
+  Engine.BLACKLIST = ['initial','scenes','defer'];
 
   _.extend(Engine.prototype, {
     start : function() {

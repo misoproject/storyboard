@@ -1,5 +1,24 @@
 (function() {
 
+  test("extending an engine with additional methods", function() {
+    var done = true;
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      boom : function() {
+        done = true;
+      },
+      scenes : {
+        'unloaded' : {
+          onEnter : function() {
+            console.log('x', this);
+            this.engine.boom();
+          }
+        }
+      }
+    });
+    equals(done, true);
+  });
+
   test("Deferring starting engine", function() {
     var done = false;
     var app = new Miso.Engine({
@@ -139,13 +158,13 @@
     equals(app.scene(), 'unloaded');
   });
 
-    test("async undefined on onExit does not stop transition", 4, function() {
+  test("async undefined on onExit does not stop transition", 4, function() {
     var pass;
     var app = new Miso.Engine({
       initial : 'unloaded',
       scenes : {
         unloaded : {
-         onExit : function() {
+          onExit : function() {
             pass = this.async();
           }
         },
@@ -260,25 +279,20 @@
     app.to('loaded', 44, { power : 'full' });
   });
 
-  test("handlers have access to the correct scene and global data", 4, function() {
+  test("handlers have access to the correct scene", 2, function() {
      var app = new Miso.Engine({
       initial : 'unloaded',
-      data : {
-        power : 'full'
-      },
       scenes : {
         unloaded : {
-          data : { a : 44 },
+          a : 44,
           onExit : function() {
-            equals(this.scene.a, 44);
-            equals(this.global.power, 'full');
+            equals(this.a, 44);
           }
         },
         loaded : {
-          data : { a : 'test' },
+          a : 'test',
           onEnter : function() {
-            equals(this.global.power, 'full');
-            equals(this.scene.a, 'test');
+            equals(this.a, 'test');
           }
         }
       }
