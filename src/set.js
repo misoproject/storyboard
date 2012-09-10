@@ -32,19 +32,11 @@
     },
 
     to : function( sceneName ) {
-      var complete;
-      if ( _.isObject(sceneName) ) {
-        complete = sceneName['with'];
-        sceneName = sceneName.name;
-      } else {
-        complete = _.Deferred();
-      }
-      this._complete = complete; //for cancelling transitions
-
       var toScene = this.scenes[sceneName],
-          fromScene = this._current;
+          fromScene = this._current,
+          complete = this._complete = _.Deferred(),
           exitComplete = _.Deferred(),
-          enterComplete = _.Deferred();
+          enterComplete = _.Deferred(),
           args = Array.prototype.slice.call(arguments, 1),
           bailout = _.bind(function() {
             this._transitioning = false;

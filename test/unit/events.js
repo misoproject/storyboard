@@ -1,12 +1,12 @@
-// module("Events");
+module("Events");
 
 // test("basic transition events", 10, function() {
   // var app = new Miso.Engine({
     // initial : 'unloaded',
-    // transitions : [
-      // { name : 'load', from : ['unloaded', 'drill'], to : 'loaded' },
-      // { name : 'drilldown', from : ['loaded'], to : 'drill' }
-    // ]
+    // scenes : {
+      // 'unloaded' : {},
+      // 'loaded' : {}
+    // }
   // });
 
   // app.subscribe('transition.start', function(transition, from, to) {
