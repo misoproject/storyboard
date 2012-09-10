@@ -37,14 +37,14 @@
             async: function() {
               async = true;
               return function(pass) {
-                pass ? deferred.resolve() : deferred.reject();
+                (pass !== false) ? deferred.resolve() : deferred.reject();
               }
             }
           };
 
       result = func.apply(context, args)
       if (!async) {
-        result ? deferred.resolve() : deferred.reject();
+        (result !== false) ? deferred.resolve() : deferred.reject();
       }
       return deferred.promise();
     }

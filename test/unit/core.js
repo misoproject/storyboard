@@ -76,7 +76,7 @@
     equals(app.scene(), 'unloaded');
   });
 
-  test("returning false on after stops transition", 2, function() {
+  test("returning false on onExit stops transition", 2, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
       scenes : {
@@ -95,6 +95,25 @@
     });
     equals(app.scene(), 'unloaded');
   });
+
+   test("returning undefined on onExit does not stop transition", 2, function() {
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      scenes : {
+        loaded : {},
+        unloaded : {
+          onExit: function() {}
+        }
+      },
+    });
+
+    var promise = app.to('loaded'); 
+    promise.done(function() {
+      ok(true);
+    });
+    equals(app.scene(), 'loaded');
+  });
+
 
   test("async fail on onExit stops transition", 4, function() {
     var pass;
@@ -118,6 +137,30 @@
     });
     ok(!app.inTransition());
     equals(app.scene(), 'unloaded');
+  });
+
+    test("async undefined on onExit does not stop transition", 4, function() {
+    var pass;
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      scenes : {
+        unloaded : {
+         onExit : function() {
+            pass = this.async();
+          }
+        },
+        loaded : {}
+      }
+    });
+
+    var promise = app.to('loaded'); 
+    ok(app.inTransition());
+    pass();
+    promise.done(function() {
+      ok(true);
+    });
+    ok(!app.inTransition());
+    equals(app.scene(), 'loaded');
   });
 
    test("async pass on onExit completes transition", 5, function() {
