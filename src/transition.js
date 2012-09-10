@@ -3,7 +3,6 @@
   var Miso = global.Miso = (global.Miso || {});
 
   Miso.Scene = function( config ) {
-    console.log('ns', arguments);
     this.name = name;
     this.data = config.data || {}
     _.each(['onEnter','onExit'], function(action) {
@@ -44,7 +43,6 @@
           };
 
       result = func.apply(context, args)
-      console.log('rr', result);
       if (!async) {
         result ? deferred.resolve() : deferred.reject();
       }

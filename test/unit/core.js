@@ -1,37 +1,25 @@
 (function() {
 
-  // //TODO
-  // test("Deferring starting engine", function() {});
-  // //TODO Unsubscribe
- //TODO test passing in deferred
+  test("Deferring starting engine", function() {
+    var done = false;
+    var app = new Miso.Engine({
+      defer : true,
+      initial : 'unloaded',
+      scenes : {
+        'unloaded' : {
+          onEnter : function() {
+            done = true;
+          }
+        },
+        'loaded' : {}
+      }
+    });
 
-  // test("Cancelling a transition in progress", 4, function() {
-    // var done;
-    // var app = new Miso.Engine({
-      // initial : 'unloaded',
-      // transitions : [
-        // { name : 'load', 
-          // from : 'unloaded', 
-          // to : 'loaded',
-          // intro : function() {
-            // done = this.async();
-          // }
-        // }
-      // ]
-    // });
-    // var promise = app.transition('load');
-    // ok(app.inTransition(), 'entered transition');
-    // promise.fail(function() {
-      // ok(true, "transition promise rejected");
-    // });
-    // app.cancelTransition();
-    // ok(!app.inTransition(), 'no longer in transition');
-    // var promise = app.transition('load');
-    // promise.done(function() {
-      // ok(true, "second attempt succeeds");
-    // });
-    // done();
-  // });
+    ok(!done, "done is still false");
+    app.start();
+    ok(done, "done is now true");
+    equals(app.start().state(), 'rejected', "Can't start twice");
+  });
 
   test("Changing synchronous states", function() {
     var app = new Miso.Engine({
@@ -66,7 +54,7 @@
     ok(app.is('loaded'), 'state is loaded');
   });
 
-  module("Before and After handlers");
+  module("onEnter and onExit handlers");
   test("returning false on onEnter stops transition", 2, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
@@ -177,6 +165,34 @@
     done();
     ok(app.scene('loaded'));
     ok(!app.inTransition(), "should no longer be in transition");
+  });
+
+  test("Cancelling a transition in progress", 4, function() {
+    var done;
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      scenes : {
+        unloaded : {
+         onExit : function() {
+            done = this.async();
+          }
+        },
+        loaded : {}
+      }
+    });
+
+    var promise = app.to('loaded');
+    ok(app.inTransition(), 'entered transition');
+    promise.fail(function() {
+      ok(true, "transition promise rejected");
+    });
+    app.cancelTransition();
+    ok(!app.inTransition(), 'no longer in transition');
+    var promise = app.to('loaded');
+    promise.done(function() {
+      ok(true, "second attempt succeeds");
+    });
+    done(true);
   });
 
   test("handlers have access arguments passed to transition", 4, function() {

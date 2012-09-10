@@ -4,25 +4,34 @@
 
   Miso.Engine = function( config ) {
     this._buildScenes( config.scenes );
-    this._current = this.scenes[config.initial || 'initial'];
     this.data = config.data || {};
     this._triggers = {};
+
+    if (config.defer) {
+      this._initial = config.initial;
+    } else {
+      this.to(config.initial);
+    }
   }
 
   var Engine = Miso.Engine;
 
-  Engine.ERRORS = {
-    cannot : "Illegal scene change",
-    inTransition : "Transition already in progress",
-  }
+  Engine.ERRORS = {};
 
   _.extend(Engine.prototype, {
+    start : function() {
+      if (this._current) { //already started 
+        return _.Deferred().reject().promise(); 
+      }
+      return this.to(this._initial);
+    },
+
     cancelTransition : function() {
       this._complete.reject();
       this._transitioning = false;
     },
 
-    to : function( sceneName, deferred ) {
+    to : function( sceneName ) {
       var complete;
       if ( _.isObject(sceneName) ) {
         complete = sceneName['with'];
@@ -30,6 +39,7 @@
       } else {
         complete = _.Deferred();
       }
+      this._complete = complete; //for cancelling transitions
 
       var toScene = this.scenes[sceneName],
           fromScene = this._current;
@@ -58,12 +68,19 @@
       
       this._transitioning = true;
 
-      //run before and after in order
-      //if either fail, run the bailout
-      fromScene.exit(exitComplete, args)
+      
+      //initial event so there's no from scene
+      if (!fromScene) {
+        exitComplete.resolve();
+        toScene.enter(enterComplete, args).fail(bailout)
+      } else {
+        //run before and after in order
+        //if either fail, run the bailout
+        fromScene.exit(exitComplete, args)
         .done(toScene.enter(enterComplete, args).fail(bailout))
         .fail(bailout);
-        
+      }
+
       //all events done, let's tidy up
       _.when(exitComplete, enterComplete).then(success);
 
