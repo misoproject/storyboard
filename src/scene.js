@@ -30,6 +30,8 @@
       _.each(['onEnter','onExit'], function(action) {
         this[action.replace(/onE/,'e')] = Miso.Scene.__wrap(this[action], this);
       }, this);
+      this.onEnter = undefined;
+      this.onExit = undefined;
     },
 
   });

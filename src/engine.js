@@ -26,6 +26,11 @@
   Engine.BLACKLIST = ['initial','scenes','defer'];
 
   _.extend(Engine.prototype, {
+     attach : function(name, engine) {
+      this.name = name;
+      this.engine = engine;
+    },
+
     start : function() {
       if (this._current) { //already started 
         return _.Deferred().reject().promise(); 
@@ -103,8 +108,8 @@
       this.scenes = {};
       _.each(scenes, function(originalScene, name) {
         var scene;
-        if (scene instanceof Miso.Scene) {
-          scene = originalTransition;
+        if (originalScene instanceof Miso.Scene || originalScene instanceof Miso.Engine) {
+          scene = originalScene;
         } else {
           scene = new Miso.Scene(originalScene);
         }
