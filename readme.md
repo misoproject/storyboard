@@ -175,15 +175,17 @@ var app = new Miso.Engine({
 
 ## Nesting Scenes ##
 
-It is also possible to nest Miso Engines inside each other, making it possible to control state at each level of your code. For example if you had a slideshow inside a larger scene, it could in turn be an engine, with each slide being a state, with handlers defining each move between slides in a custom manner. Please note unless you want the enter handler running immidietely that nested engines should be marked `defer` to avoid them running before they are meant to.
+It is also possible to nest Miso Engines inside each other, making it possible to control state at each level of your code. For example if you had a slideshow inside a larger scene, it could in turn be an engine, with each slide being a state, with handlers defining each move between slides in a custom manner. Please note unless you want the enter handler running immidietely that nested engines should be marked `defer` to avoid them running before they are meant to. Nested Engines must define an `enter` and `exit` scene, which will be called when the `onEnter` and `onExit` scnes would be run in a normal `Miso.Scene`. This will be done automatically in a future version.
 
 ```javscript
 var walkthrough = new Miso.Engine({
   initial : 'one',
   scenes : {
+    enter : {}
     one : {},
     two : {},
     three : {}
+    exit : {}
   },
   defer : true
 });

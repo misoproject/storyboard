@@ -93,7 +93,7 @@
     },
 
     scene : function() {
-      return this._current.name;
+      return this._current ? this._current.name : null;
     },
 
     is : function( scene ) {

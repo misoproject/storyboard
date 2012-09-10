@@ -34,6 +34,7 @@
     });
 
     ok(!done, "done is still false");
+    equals(app.scene(), null);
     app.start();
     ok(done, "done is now true");
     equals(app.start().state(), 'rejected', "Can't start twice");

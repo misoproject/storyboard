@@ -16,7 +16,7 @@
 
   _.extend(Miso.Scene.prototype, Miso.Engine.prototype, {
     to : function(name, args, deferred) {
-      return this[name].call(this, deferred, args);
+      return this['_' + name].call(this, deferred, args);
     },
 
     attach : function(name, engine) {
@@ -27,10 +27,10 @@
 
     _wrapFunctions : function(config) {
       _.each(['onEnter','onExit'], function(action) {
-        this[action.replace(/onE/,'e')] = Miso.Scene.__wrap(this[action], this);
+        this[action.replace(/onE/,'_e')] = Miso.Scene.__wrap(this[action], this);
       }, this);
-      this.onEnter = undefined;
-      this.onExit = undefined;
+      delete this.onEnter;
+      delete this.onExit;
     }
 
   });
