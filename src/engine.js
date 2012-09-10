@@ -8,7 +8,7 @@
 
      //attach extra methods
     _.each(config, function(prop, name) {
-      if (_.indexOf(Engine.BLACKLIST, name) !== -1) { return }
+      if (_.indexOf(Engine.BLACKLIST, name) !== -1) { return; }
       this[name] = prop;
     }, this);
 
@@ -18,7 +18,7 @@
       this.to(config.initial);
     }
    
-  }
+  };
 
   var Engine = Miso.Engine;
 
@@ -43,10 +43,10 @@
       this._transitioning = false;
     },
 
-    to : function( sceneName, args, deferred ) {
+    to : function( sceneName, argsArr, deferred ) {
       var toScene = this.scenes[sceneName],
           fromScene = this._current,
-          args = args || [],
+          args = argsArr ? argsArr : [],
           complete = this._complete = deferred || _.Deferred(),
           exitComplete = _.Deferred(),
           enterComplete = _.Deferred(),
@@ -62,7 +62,7 @@
 
       //Can't fire a transition that isn't defined
       if (!toScene) {
-        throw "Scene '" + sceneName + "' not found!"
+        throw "Scene '" + sceneName + "' not found!";
       }
 
       //we in the middle of a transition?
@@ -140,7 +140,7 @@
       this._triggers[name].push(subscription);
 
       return subscription.token;
-    },
+    }
 
 
   });

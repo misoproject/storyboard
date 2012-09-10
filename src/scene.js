@@ -3,17 +3,16 @@
   var Miso = global.Miso = (global.Miso || {});
 
   Miso.Scene = function( config ) {
-    this.data = config.data || {}
     _.each(['onEnter','onExit'], function(action) {
       this[action] = config[action] ? config[action] : function() { return true; };
     }, this);
      //attach extra methods
     var blacklist = ['onEnter','onExit'];
     _.each(config, function(prop, name) {
-      if (_.indexOf(blacklist, name) !== -1) { return }
+      if (_.indexOf(blacklist, name) !== -1) { return; }
       this[name] = prop;
     }, this);
-  }
+  };
 
   _.extend(Miso.Scene.prototype, Miso.Engine.prototype, {
     to : function(name, args, deferred) {
@@ -32,7 +31,7 @@
       }, this);
       this.onEnter = undefined;
       this.onExit = undefined;
-    },
+    }
 
   });
 
@@ -45,18 +44,18 @@
           this.async = function() {
             async = true;
             return function(pass) {
-              (pass !== false) ? deferred.resolve() : deferred.reject();
-            }
+              return (pass !== false) ? deferred.resolve() : deferred.reject();
+            };
           };
 
-      result = func.apply(this, args)
+      result = func.apply(this, args);
       this.async = undefined;
       if (!async) {
-        (result !== false) ? deferred.resolve() : deferred.reject();
+        return (result !== false) ? deferred.resolve() : deferred.reject();
       }
       return deferred.promise();
-    }
-  }
+    };
+  };
 
 }(this, _, $));
 

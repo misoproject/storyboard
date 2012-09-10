@@ -1,7 +1,7 @@
 module("Building complex scenes");
 
 test("predefining scenes", function() {
-  order = [];
+  var order = [];
   var sceneA = new Miso.Scene({
     onEnter : function() {
       order.push('a');
@@ -30,7 +30,7 @@ test("predefining scenes", function() {
 });
 
 test("Using as engine as a scene", function() {
-  order = [];
+  var order = [];
   var subEngine = new Miso.Engine({
     scenes : {
       enter : {

@@ -60,7 +60,7 @@
         'unloaded' : {},
         'loaded' : {},
         'drilldown' : {}
-      },
+      }
     });
 
     ok(app.is('unloaded'), 'initial state is unloaded');
@@ -83,7 +83,7 @@
             return false;
           }
         }
-      },
+      }
     });
 
     var promise = app.to('loaded');
@@ -104,7 +104,7 @@
             return false;
           }
         }
-      },
+      }
     });
 
     var promise = app.to('loaded'); 
@@ -122,7 +122,7 @@
         unloaded : {
           onExit: function() {}
         }
-      },
+      }
     });
 
     var promise = app.to('loaded'); 
@@ -249,7 +249,7 @@
     });
     app.cancelTransition();
     ok(!app.inTransition(), 'no longer in transition');
-    var promise = app.to('loaded');
+    promise = app.to('loaded');
     promise.done(function() {
       ok(true, "second attempt succeeds");
     });

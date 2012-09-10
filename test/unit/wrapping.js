@@ -6,7 +6,7 @@
   test("sync wrap", 1, function() {
     var pass = function() {
       return true;
-    }
+    };
 
     var wrapped = Miso.Scene.__wrap(pass, engineStub);
     var complete = _.Deferred();
@@ -18,7 +18,7 @@
   test("sync wrap that fails", 1, function() {
     var pass = function() {
       return false;
-    }
+    };
 
     var wrapped = Miso.Scene.__wrap(pass, engineStub);
     var complete = _.Deferred();
@@ -31,7 +31,7 @@
     var pass = function() {
       var done = this.async();
       done(true);
-    }
+    };
 
     var wrapped = Miso.Scene.__wrap(pass, engineStub);
     var complete = _.Deferred();
@@ -44,7 +44,7 @@
     var pass = function() {
       var done = this.async();
       done(false);
-    }
+    };
 
     var wrapped = Miso.Scene.__wrap(pass, engineStub);
     var complete = _.Deferred();
