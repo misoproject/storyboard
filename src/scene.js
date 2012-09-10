@@ -1,29 +1,8 @@
 (function(global, _, $) {
 
-  // sceneConfig = {
-    // onEnter : function() {},
-    // onExit : function() {}
-  // };
-
-  // var creator = function( sceneConfig ) {
-    // _.each(['onEnter','onExit'], function(action) {
-      // sceneConfig[action] = config[action] ? config[action] : function() { return true; };
-    // }, this);
-
-    // var scenes = {
-      // entering : { onEnter : sceneConfig.onEnter },
-      // rest     : {},
-      // exiting  : { onEnter : sceneConfig.onExit }
-    // }
-    // new Miso.Engine({
-      // config.scenes = scenes
-    // });
-  // }
-
   var Miso = global.Miso = (global.Miso || {});
 
   Miso.Scene = function( config ) {
-    this.name = name;
     this.data = config.data || {}
     _.each(['onEnter','onExit'], function(action) {
       this[action] = config[action] ? config[action] : function() { return true; };
@@ -34,10 +13,13 @@
       if (_.indexOf(blacklist, name) !== -1) { return }
       this[name] = prop;
     }, this);
-
   }
 
   _.extend(Miso.Scene.prototype, Miso.Engine.prototype, {
+    to : function(name, args, deferred) {
+      return this[name].call(this, deferred, args);
+    },
+
     attach : function(name, engine) {
       this.name = name;
       this.engine = engine;

@@ -10,7 +10,6 @@
       scenes : {
         'unloaded' : {
           onEnter : function() {
-            console.log('x', this);
             this.engine.boom();
           }
         }
@@ -257,6 +256,21 @@
     done(true);
   });
 
+  test("passing a custom deferred to to", 1, function() {
+     var app = new Miso.Engine({
+      initial : 'unloaded',
+      scenes : {
+        'unloaded' : {},
+        'loaded' : {}
+      }
+    });
+    var done = _.Deferred();
+    done.done(function() {
+      ok(true);
+    });
+    app.to('loaded', [], done);
+  });
+
   test("handlers have access arguments passed to transition", 4, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
@@ -276,7 +290,7 @@
       }
     });
 
-    app.to('loaded', 44, { power : 'full' });
+    app.to('loaded', [44, { power : 'full' }]);
   });
 
   test("handlers have access to the correct scene", 2, function() {
@@ -299,10 +313,6 @@
     });
 
     app.to('loaded');
-
-  });
-
-  test("handlers have access to an engine data object", function() {
   });
 
 }());

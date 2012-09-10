@@ -38,13 +38,13 @@
       this._transitioning = false;
     },
 
-    to : function( sceneName ) {
+    to : function( sceneName, args, deferred ) {
       var toScene = this.scenes[sceneName],
           fromScene = this._current,
-          complete = this._complete = _.Deferred(),
+          args = args || [],
+          complete = this._complete = deferred || _.Deferred(),
           exitComplete = _.Deferred(),
           enterComplete = _.Deferred(),
-          args = Array.prototype.slice.call(arguments, 1),
           bailout = _.bind(function() {
             this._transitioning = false;
             complete.reject();
@@ -71,13 +71,14 @@
       //initial event so there's no from scene
       if (!fromScene) {
         exitComplete.resolve();
-        toScene.enter(enterComplete, args).fail(bailout)
+        toScene.to('enter', args, enterComplete)
+          .fail(bailout);
       } else {
         //run before and after in order
         //if either fail, run the bailout
-        fromScene.exit(exitComplete, args)
-        .done(toScene.enter(enterComplete, args).fail(bailout))
-        .fail(bailout);
+        fromScene.to('exit', args, exitComplete)
+          .done(toScene.to('enter', args, enterComplete).fail(bailout))
+          .fail(bailout);
       }
 
       //all events done, let's tidy up
