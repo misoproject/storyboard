@@ -95,6 +95,39 @@
     equals(app.scene(), 'unloaded');
   });
 
+  test("async handlers are executed in the correct order", 1, function() {
+    var order = [];
+    var app = new Miso.Engine({
+      initial : 'unloaded',
+      scenes : {
+        unloaded : {
+          onExit: function() {
+            var done = this.async();
+            setTimeout(function() {
+              order.push('a');
+              done();
+            }, 100);
+          }
+        },
+        loaded : {
+          onEnter : function() {
+            order.push('b');
+          }
+        }
+      }
+    });
+
+    app.to('loaded');
+    stop();
+    setTimeout(function() {
+      start();
+      equals(order.join(''), 'ab', 'handlers fired in the corect order');
+    }, 200);
+
+
+
+  });
+
   test("returning false on onExit stops transition", 2, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',

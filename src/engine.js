@@ -82,7 +82,9 @@
         //run before and after in order
         //if either fail, run the bailout
         fromScene.to('exit', args, exitComplete)
-          .done(toScene.to('enter', args, enterComplete).fail(bailout))
+          .done(function() {
+            toScene.to('enter', args, enterComplete).fail(bailout)
+          })
           .fail(bailout);
       }
 
