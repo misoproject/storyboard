@@ -19,11 +19,11 @@
     },
 
     pub : function() {
-      return this._publish.call(this, arguments);
+      return this._publish.apply(this, arguments);
     },
 
     sub : function() {
-      return this.subscribe.call(this, arguments);
+      return this.subscribe.apply(this, arguments);
     },
 
     _publish : function(name) {
