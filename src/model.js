@@ -5,7 +5,7 @@
   Miso.Model = function(data) {
     this._data = data || {};
     this._triggers = {};
-  }
+  };
 
   _.extend(Miso.Model.prototype, {
     get : function(prop) {
@@ -34,7 +34,7 @@
         _.each(this._triggers[name], function(subscription) {
           subscription.callback.apply(subscription.context || this, args);
         }, this);
-      }  
+      }
     },
 
     subscribe : function(name, callback, context, token) {
@@ -75,7 +75,7 @@
       } else {
         this._triggers[name] = [];
       }
-    },
+    }
   });
 
 }(this, _, $));
