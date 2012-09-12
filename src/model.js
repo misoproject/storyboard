@@ -13,9 +13,11 @@
     },
 
     set : function(prop, value) {
-      this._publish('set', prop, value, this._data[prop]);
-      this._publish('set:'+prop, value, this._data[prop]);
-      return this._data[prop] = value;
+      var previousValue = this._data[prop];
+      this._data[prop] = value;
+      this._publish('set', prop, value, previousValue);
+      this._publish('set:'+prop, value, previousValue);
+      return value;
     },
 
     pub : function() {
