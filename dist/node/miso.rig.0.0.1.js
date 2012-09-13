@@ -37,9 +37,9 @@ _.mixin(require("underscore.deferred"));
   Rig.BLACKLIST = ['initial','scenes','defer'];
 
   _.extend(Rig.prototype, {
-     attach : function(name, engine) {
+     attach : function(name, rig) {
       this.name = name;
-      this.engine = engine;
+      this.rig = rig;
     },
 
     start : function() {
