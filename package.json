@@ -1,0 +1,42 @@
+{
+  "name" : "miso.rig",
+  "title" : "Miso.Rig",
+  "description" : "Rig is a state management library that makes orchestrating the flows of your application easy using frames.",
+  "version" : "0.0.1",
+  "homepage" : "http://github.com/misoproject/rig",
+  "authors" : "Alex Graul, Irene Ros, Rich Harris",
+
+  "bugs" : {
+    "url" : "http://github.com/misoproject/rig/issues"
+  },
+
+  "licenses" : [
+    {
+      "type" : "MIT",
+      "url" : "http://github.com/misoproject/rig/blob/master/LICENSE-MIT"
+    },
+    {
+      "type" : "GPL",
+      "url" : "http://github.com/misoproject/rig/blob/master/LICENSE-GPL"
+    }
+  ],
+
+  "main": "dist/node/miso.rig.deps.0.0.1",
+
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:misoproject/rig.git"
+  },
+
+  "keywords" : [ "state", "state management" ],
+
+  "engines": {
+    "node": "~0.8"
+  }, 
+
+  "dependencies": {
+    "lodash": "0.7.0",
+    "underscore.deferred": "0.2.0",
+    "connect" : "2.4.4"
+  }
+} 
