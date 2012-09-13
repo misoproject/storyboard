@@ -9,7 +9,7 @@
       },
       scenes : {
         'unloaded' : {
-          onEnter : function() {
+          enter : function() {
             this.engine.boom();
           }
         }
@@ -25,7 +25,7 @@
       initial : 'unloaded',
       scenes : {
         'unloaded' : {
-          onEnter : function() {
+          enter : function() {
             done = true;
           }
         },
@@ -73,14 +73,14 @@
     ok(app.is('loaded'), 'state is loaded');
   });
 
-  module("onEnter and onExit handlers");
-  test("returning false on onEnter stops transition", 2, function() {
+  module("enter and exit handlers");
+  test("returning false on enter stops transition", 2, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
       scenes : {
         'unloaded' : {},
         'loaded' : {
-          onEnter : function() {
+          enter : function() {
             return false;
           }
         }
@@ -101,7 +101,7 @@
       initial : 'unloaded',
       scenes : {
         unloaded : {
-          onExit: function() {
+          exit: function() {
             var done = this.async();
             setTimeout(function() {
               order.push('a');
@@ -110,7 +110,7 @@
           }
         },
         loaded : {
-          onEnter : function() {
+          enter : function() {
             order.push('b');
           }
         }
@@ -128,13 +128,13 @@
 
   });
 
-  test("returning false on onExit stops transition", 2, function() {
+  test("returning false on exit stops transition", 2, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
       scenes : {
         loaded : {},
         unloaded : {
-          onExit: function() {
+          exit: function() {
             return false;
           }
         }
@@ -148,13 +148,13 @@
     equals(app.scene(), 'unloaded');
   });
 
-   test("returning undefined on onExit does not stop transition", 2, function() {
+   test("returning undefined on exit does not stop transition", 2, function() {
     var app = new Miso.Engine({
       initial : 'unloaded',
       scenes : {
         loaded : {},
         unloaded : {
-          onExit: function() {}
+          exit: function() {}
         }
       }
     });
@@ -167,13 +167,13 @@
   });
 
 
-  test("async fail on onExit stops transition", 4, function() {
+  test("async fail on exit stops transition", 4, function() {
     var pass;
     var app = new Miso.Engine({
       initial : 'unloaded',
       scenes : {
         unloaded : {
-         onExit : function() {
+         exit : function() {
             pass = this.async();
           }
         },
@@ -191,13 +191,13 @@
     equals(app.scene(), 'unloaded');
   });
 
-  test("async undefined on onExit does not stop transition", 4, function() {
+  test("async undefined on exit does not stop transition", 4, function() {
     var pass;
     var app = new Miso.Engine({
       initial : 'unloaded',
       scenes : {
         unloaded : {
-          onExit : function() {
+          exit : function() {
             pass = this.async();
           }
         },
@@ -215,13 +215,13 @@
     equals(app.scene(), 'loaded');
   });
 
-   test("async pass on onExit completes transition", 5, function() {
+   test("async pass on exit completes transition", 5, function() {
      var pass;
      var app = new Miso.Engine({
        initial : 'unloaded',
        scenes : {
          unloaded : {
-           onExit : function() {
+           exit : function() {
              pass = this.async();
            }
          },
@@ -240,14 +240,14 @@
     equals(app.scene(), 'loaded');
   });
 
-  test("Asynchronous onEnter", function() {
+  test("Asynchronous enter", function() {
       var done;
       var app = new Miso.Engine({
       initial : 'unloaded',
       scenes : {
         unloaded : {},
         loaded : {
-          onEnter : function() {
+          enter : function() {
             done = this.async();
           }
         }
@@ -268,7 +268,7 @@
       initial : 'unloaded',
       scenes : {
         unloaded : {
-         onExit : function() {
+         exit : function() {
             done = this.async();
           }
         },
@@ -310,13 +310,13 @@
       initial : 'unloaded',
       scenes : {
         unloaded : {
-          onExit : function(a, b) {
+          exit : function(a, b) {
             equals(a, 44);
             equals(b.power, 'full');
           }
         },
         loaded : {
-          onEnter : function(a, b) {
+          enter : function(a, b) {
             equals(a, 44);
             equals(b.power, 'full');
           }
@@ -333,13 +333,13 @@
       scenes : {
         unloaded : {
           a : 44,
-          onExit : function() {
+          exit : function() {
             equals(this.a, 44);
           }
         },
         loaded : {
           a : 'test',
-          onEnter : function() {
+          enter : function() {
             equals(this.a, 'test');
           }
         }

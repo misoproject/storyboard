@@ -3,16 +3,16 @@ module("Building complex scenes");
 test("predefining scenes", function() {
   var order = [];
   var sceneA = new Miso.Scene({
-    onEnter : function() {
+    enter : function() {
       order.push('a');
     }, 
-    onExit : function() {
+    exit : function() {
       order.push('b');
     }
   });
 
   var sceneB = new Miso.Scene({
-    onEnter : function() {
+    enter : function() {
       order.push('c');
     }
   });
@@ -34,15 +34,15 @@ test("Using as engine as a scene", function() {
   var subEngine = new Miso.Engine({
     scenes : {
       enter : {
-        onEnter : function() {
+        enter : function() {
           order.push('a');
         },
-        onExit : function() {
+        exit : function() {
           order.push('b');
         }
       },
       exit : {
-        onEnter : function() {
+        enter : function() {
           order.push('c');
         }
       }
@@ -56,7 +56,7 @@ test("Using as engine as a scene", function() {
     scenes : {
       unloaded : subEngine,
       loaded : {
-        onEnter : function() {
+        enter : function() {
           order.push('d');
         }
       }
@@ -76,7 +76,7 @@ test("Nesting 3 engines inside each other", function() {
     initial : 'enter',
     scenes : {
       enter : {
-        onEnter : function() {
+        enter : function() {
           order.push('c');
         }
       }
@@ -88,7 +88,7 @@ test("Nesting 3 engines inside each other", function() {
     initial : 'enter',
     scenes : {
       enter : {
-        onEnter : function() {
+        enter : function() {
           order.push('b');
         }
       },
@@ -101,7 +101,7 @@ test("Nesting 3 engines inside each other", function() {
     initial : 'a',
     scenes : {
       a : {
-        onEnter : function() {
+        enter : function() {
           order.push('a');
         }
       },

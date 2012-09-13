@@ -3,41 +3,46 @@
   var Miso = global.Miso = (global.Miso || {});
 
   Miso.Scene = function( config ) {
-    _.each(['onEnter','onExit'], function(action) {
-      this[action] = config[action] ? config[action] : function() { return true; };
+    this.triggers = {};
+    this.handlers = {}
+    var handlers = ['enter','exit'];
+    _.each(handlers, function(action) {
+      config[action] = config[action] || function() { return true; };
+      this.handlers[action] = wrap(config[action]);
     }, this);
-     //attach extra methods
-    var blacklist = ['onEnter','onExit'];
+
+    //attach extra methods
     _.each(config, function(prop, name) {
-      if (_.indexOf(blacklist, name) !== -1) { return; }
+      if (_.indexOf(handlers, name) !== -1) { return; }
       this[name] = prop;
     }, this);
   };
 
   _.extend(Miso.Scene.prototype, Miso.Engine.prototype, {
-    to : function(name, args, deferred) {
-      return this['_' + name].call(this, deferred, args);
-    },
+    to : function( sceneName, argsArr, deferred ) {
+      this._transitioning = true;
+      var complete = this._complete = deferred || _.Deferred(),
+          args = argsArr ? argsArr : [],
+          handlerComplete = _.Deferred()
+            .done(_.bind(function() {
+              this._transitioning = false;
+              this._current = sceneName;
+              complete.resolve();
+            }, this))
+            .fail(_.bind(function() {
+              this._transitioning = false;
+              complete.reject();
+            }, this));
+        
+      this.handlers[sceneName].call(this, handlerComplete, args)
 
-    attach : function(name, engine) {
-      this.name = name;
-      this.engine = engine;
-      this._wrapFunctions();
-    },
-
-    _wrapFunctions : function(config) {
-      _.each(['onEnter','onExit'], function(action) {
-        this[action.replace(/onE/,'_e')] = wrap(this[action], this);
-      }, this);
-      delete this.onEnter;
-      delete this.onExit;
+      return complete.promise();
     }
-
   });
 
   //wrap functions so they can declare themselves as optionally
   //asynchronous without having to worry about deferred management.
-  function wrap(func, scene) {
+  function wrap(func) {
     return function(deferred, args) {
       var async = false,
           result;
