@@ -25,8 +25,8 @@ module("Model");
     var m = new Miso.Model({ a : 22 });
     m.subscribe('set', function(property, value, oldvalue) {
       equals(property, 'a');
-      equals(value, 9)
-      equals(oldvalue, 22)
+      equals(value, 9);
+      equals(oldvalue, 22);
     });
     m.set('a', 9);
   });
@@ -34,8 +34,8 @@ module("Model");
   test("Model fires a set:property event when a property is set", 2, function() {
     var m = new Miso.Model({ a : 22 });
     m.subscribe('set:a', function(value, oldvalue) {
-      equals(value, 9)
-      equals(oldvalue, 22)
+      equals(value, 9);
+      equals(oldvalue, 22);
     });
     m.set('a', 9);
   });

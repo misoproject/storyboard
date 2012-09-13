@@ -4,7 +4,7 @@
 
   Miso.Scene = function( config ) {
     this.triggers = {};
-    this.handlers = {}
+    this.handlers = {};
     var handlers = ['enter','exit'];
     _.each(handlers, function(action) {
       config[action] = config[action] || function() { return true; };
@@ -34,7 +34,7 @@
               complete.reject();
             }, this));
         
-      this.handlers[sceneName].call(this, handlerComplete, args)
+      this.handlers[sceneName].call(this, handlerComplete, args);
 
       return complete.promise();
     }
@@ -60,7 +60,7 @@
       }
       return deferred.promise();
     };
-  };
+  }
 
 }(this, _, $));
 
