@@ -10,29 +10,43 @@ module.exports = function(grunt) {
                 '* <%= pkg.homepage %>\n' +
                 '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.authors %>;\n' +
                 '* Dual Licensed: <%= _.pluck(pkg.licenses, "type").join(", ") %>\n' +
-                '* https://github.com/misoproject/scene/blob/master/LICENSE-MIT \n' +
-                '* https://github.com/misoproject/scene/blob/master/LICENSE-GPL \n' +
+                '* https://github.com/misoproject/rig/blob/master/LICENSE-MIT \n' +
+                '* https://github.com/misoproject/rig/blob/master/LICENSE-GPL \n' +
                 '*/',
       lastbuild : '<%= grunt.template.today("yyyy/mm/dd hh:ss") %>'
     },
 
+    node: {
+      wrapper: "src/node/compat.js",
+      misoRig: "dist/miso.rig.<%= pkg.version %>.js"
+    },
+
     concat : {
       fullnodeps: {
-        dest: "dist/miso.scene.<%= pkg.version %>.js",
+        dest: "dist/miso.rig.<%= pkg.version %>.js",
         src: [
           "<banner>",
-          "src/engine.js",
+          "src/rig.js",
           "src/scene.js"
         ]
       },
 
+      requirenodeps: {
+        dest: "dist/miso.rig.r.<%= pkg.version %>.js",
+        src: [
+          "<banner>",
+          "dist/miso.rig.<%= pkg.version %>.js",
+          "src/require.js"
+        ]
+      },
+
       fulldeps: {
-        dest : "dist/miso.scene.deps.<%= pkg.version %>.js",
+        dest : "dist/miso.rig.deps.<%= pkg.version %>.js",
         src : [
           "<banner>",
-          "lib/lodash.0.6.2.min.js",
-          "lib/underscore.deferred.js",
-          "dist/miso.scene.<%= pkg.version %>.js"
+          "components/lodash/lodash.js",
+          "components/underscore.deferred/underscore.deferred.js",
+          "dist/miso.rig.<%= pkg.version %>.js"
         ]
       },
 
@@ -46,10 +60,17 @@ module.exports = function(grunt) {
 
     min : {
       minnodeps : {
-        dest : "dist/miso.scene.min.<%= pkg.version %>.js",
+        dest : "dist/miso.rig.min.<%= pkg.version %>.js",
         src : [
           "<banner>",
-          "dist/miso.scene.<%= pkg.version %>.js" 
+          "dist/miso.rig.<%= pkg.version %>.js" 
+        ]
+      },
+      mindeps : {
+        dest : "dist/miso.rig.deps.min.<%= pkg.version %>.js",
+        src : [
+          "<banner>",
+          "dist/miso.rig.deps.<%= pkg.version %>.js" 
         ]
       }
     },
@@ -95,7 +116,7 @@ module.exports = function(grunt) {
         browser : true,
         bitwise  : true,
         loopfunc : true,
-        predef : [ "_", "moment", "log", "template", "async","Miso" ]
+        predef : [ "_", "Miso", "require", "exports", "define" ]
       },
       globals : {
         QUnit : true,
@@ -117,13 +138,18 @@ module.exports = function(grunt) {
 
     uglify : {
       "mangle" : {
-        "except" : [ "_", "$" ]
+        "except" : [ "_" ]
       },
       "squeeze" : {},
       "codegen" : {}
     }
   });
 
+  // load available tasks.
+  grunt.loadTasks("tasks");
+
   // Default task.
-  grunt.registerTask('default', 'lint qunit concat min');
+  grunt.registerTask('default', 'lint testserver qunit concat min node');
 };
+
+
