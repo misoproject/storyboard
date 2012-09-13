@@ -2,13 +2,13 @@
 
   var Miso = global.Miso = (global.Miso || {});
 
-  Miso.Engine = function( config ) {
+  Miso.Rig = function( config ) {
     this._buildScenes( config.scenes );
     this._triggers = {};
 
      //attach extra methods
     _.each(config, function(prop, name) {
-      if (_.indexOf(Engine.BLACKLIST, name) !== -1) { return; }
+      if (_.indexOf(Rig.BLACKLIST, name) !== -1) { return; }
       this[name] = prop;
     }, this);
 
@@ -19,12 +19,12 @@
     }
   };
 
-  var Engine = Miso.Engine;
+  var Rig = Miso.Rig;
 
-  Engine.ERRORS = {};
-  Engine.BLACKLIST = ['initial','scenes','defer'];
+  Rig.ERRORS = {};
+  Rig.BLACKLIST = ['initial','scenes','defer'];
 
-  _.extend(Engine.prototype, {
+  _.extend(Rig.prototype, {
      attach : function(name, engine) {
       this.name = name;
       this.engine = engine;
@@ -109,7 +109,7 @@
       this.scenes = {};
       _.each(scenes, function(originalScene, name) {
         var scene;
-        if (originalScene instanceof Miso.Scene || originalScene instanceof Miso.Engine) {
+        if (originalScene instanceof Miso.Scene || originalScene instanceof Miso.Rig) {
           scene = originalScene;
         } else {
           scene = new Miso.Scene(originalScene);

@@ -18,7 +18,7 @@
     }, this);
   };
 
-  _.extend(Miso.Scene.prototype, Miso.Engine.prototype, {
+  _.extend(Miso.Scene.prototype, Miso.Rig.prototype, {
     to : function( sceneName, argsArr, deferred ) {
       this._transitioning = true;
       var complete = this._complete = deferred || _.Deferred(),

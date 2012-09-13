@@ -17,7 +17,7 @@ test("predefining scenes", function() {
     }
   });
 
-  var app = new Miso.Engine({
+  var app = new Miso.Rig({
     initial : 'unloaded',
     scenes : {
       unloaded : sceneA,
@@ -31,7 +31,7 @@ test("predefining scenes", function() {
 
 test("Using as engine as a scene", function() {
   var order = [];
-  var subEngine = new Miso.Engine({
+  var subRig = new Miso.Rig({
     scenes : {
       enter : {
         enter : function() {
@@ -51,10 +51,10 @@ test("Using as engine as a scene", function() {
     initial : 'enter'
   });
 
-  var app = new Miso.Engine({
+  var app = new Miso.Rig({
     initial : 'unloaded',
     scenes : {
-      unloaded : subEngine,
+      unloaded : subRig,
       loaded : {
         enter : function() {
           order.push('d');
@@ -72,7 +72,7 @@ test("Using as engine as a scene", function() {
 test("Nesting 3 engines inside each other", function() {
   var order = [];
 
-  var inner = new Miso.Engine({
+  var inner = new Miso.Rig({
     initial : 'enter',
     scenes : {
       enter : {
@@ -84,7 +84,7 @@ test("Nesting 3 engines inside each other", function() {
     defer : true
   });
 
-  var outer = new Miso.Engine({
+  var outer = new Miso.Rig({
     initial : 'enter',
     scenes : {
       enter : {
@@ -97,7 +97,7 @@ test("Nesting 3 engines inside each other", function() {
     defer : true
   });
 
-  var app = new Miso.Engine({
+  var app = new Miso.Rig({
     initial : 'a',
     scenes : {
       a : {

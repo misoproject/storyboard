@@ -2,7 +2,7 @@
 
   test("extending an engine with additional methods", function() {
     var done = true;
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       boom : function() {
         done = true;
@@ -20,7 +20,7 @@
 
   test("Deferring starting engine", function() {
     var done = false;
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       defer : true,
       initial : 'unloaded',
       scenes : {
@@ -41,7 +41,7 @@
   });
 
   test("Changing synchronous states", function() {
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         'unloaded' : {},
@@ -55,7 +55,7 @@
   });
 
   test("Changing between multiple synchronous states", function() {
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         'unloaded' : {},
@@ -75,7 +75,7 @@
 
   module("enter and exit handlers");
   test("returning false on enter stops transition", 2, function() {
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         'unloaded' : {},
@@ -97,7 +97,7 @@
 
   test("async handlers are executed in the correct order", 1, function() {
     var order = [];
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         unloaded : {
@@ -129,7 +129,7 @@
   });
 
   test("returning false on exit stops transition", 2, function() {
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         loaded : {},
@@ -149,7 +149,7 @@
   });
 
    test("returning undefined on exit does not stop transition", 2, function() {
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         loaded : {},
@@ -169,7 +169,7 @@
 
   test("async fail on exit stops transition", 4, function() {
     var pass;
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         unloaded : {
@@ -193,7 +193,7 @@
 
   test("async undefined on exit does not stop transition", 4, function() {
     var pass;
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         unloaded : {
@@ -217,7 +217,7 @@
 
    test("async pass on exit completes transition", 5, function() {
      var pass;
-     var app = new Miso.Engine({
+     var app = new Miso.Rig({
        initial : 'unloaded',
        scenes : {
          unloaded : {
@@ -242,7 +242,7 @@
 
   test("Asynchronous enter", function() {
       var done;
-      var app = new Miso.Engine({
+      var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         unloaded : {},
@@ -264,7 +264,7 @@
 
   test("Cancelling a transition in progress", 4, function() {
     var done;
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         unloaded : {
@@ -291,7 +291,7 @@
   });
 
   test("passing a custom deferred to to", 1, function() {
-     var app = new Miso.Engine({
+     var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         'unloaded' : {},
@@ -306,7 +306,7 @@
   });
 
   test("handlers have access arguments passed to transition", 4, function() {
-    var app = new Miso.Engine({
+    var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         unloaded : {
@@ -328,7 +328,7 @@
   });
 
   test("handlers have access to the correct scene", 2, function() {
-     var app = new Miso.Engine({
+     var app = new Miso.Rig({
       initial : 'unloaded',
       scenes : {
         unloaded : {
