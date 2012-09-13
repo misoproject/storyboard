@@ -1,27 +1,33 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <title>Block Test Suite</title>
+  <title>Scene Test Suite</title>
   <link rel="stylesheet" href="vendor/qunit.css" type="text/css" media="screen" />
-  
-  <script src="../lib/miso.ds.deps.0.2.1.js"></script>
-  <script src="../dist/miso.block.deps.0.1.0.js"></script>
 
   <!-- Vendor deps, non-lib -->
+  <script src="vendor/jquery.js"></script>
   <script src="vendor/qunit.js"></script>
   <script src="vendor/jslitmus.js"></script>
+ 
+  <!-- dependencies -->
+  <script src="../components/lodash/lodash.js"></script>
+  <script src="../components/underscore.deferred/underscore.deferred.js"></script>
 
-  <!-- load test modules --> 
+  <!-- Component source files -->
+  <script src="../dist/miso.rig.0.0.1.js"></script>
+  <script src="../src/model.js"></script>
+
+   <!-- load test modules --> 
   <script src="unit/core.js"></script>
-  <script src="unit/block.js"></script> 
-  <script src="unit/style.js"></script> 
-  <script src="unit/mixin.js"></script>
   <script src="unit/events.js"></script>
+  <script src="unit/scene.js"></script>
+  <script src="unit/nesting.js"></script>
+  <script src="unit/model.js"></script>
 
 </head>
 <body>
   <div class="block-test">
-    <h1 id="qunit-header">Block Test Suite</h1>
+    <h1 id="qunit-header">Scene Test Suite</h1>
     <h2 id="qunit-banner"></h2>
     <h2 id="qunit-userAgent"></h2>
     <ol id="qunit-tests"></ol>
@@ -30,6 +36,11 @@
   </div>
 
   <div id="testcontainer1" style="position: absolute; width: 200px; height: 400px; left: 10px; right: 40px;">
+    <script id='template1' type='text/template'>
+      <div class='foo'><a href='#'>test</a></div>
+    </script>     
+    <script id='template2' type='text/template'><a href='#'><%= name %></a></script>   
+    <script id='template3' type='text/template'><a href='#'>{{name}}</a></script>   
   </div>
 </body>
 </html>
