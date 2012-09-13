@@ -17,7 +17,6 @@
     } else {
       this.to(config.initial);
     }
-   
   };
 
   var Engine = Miso.Engine;

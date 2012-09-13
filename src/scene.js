@@ -27,7 +27,7 @@
 
     _wrapFunctions : function(config) {
       _.each(['onEnter','onExit'], function(action) {
-        this[action.replace(/onE/,'_e')] = Miso.Scene.__wrap(this[action], this);
+        this[action.replace(/onE/,'_e')] = wrap(this[action], this);
       }, this);
       delete this.onEnter;
       delete this.onExit;
@@ -37,7 +37,7 @@
 
   //wrap functions so they can declare themselves as optionally
   //asynchronous without having to worry about deferred management.
-  Miso.Scene.__wrap = function(func, scene) {
+  function wrap(func, scene) {
     return function(deferred, args) {
       var async = false,
           result;
