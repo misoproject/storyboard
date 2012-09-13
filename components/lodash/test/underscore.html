@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Underscore Test Suite</title>
+		<link rel="stylesheet" href="../vendor/underscore/test/vendor/qunit.css">
+		<style>
+			#jslitmus, iframe {
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<div id="qunit-fixture">
+			<div id="map-test">
+				<div id="id1"></div>
+				<div id="id2"></div>
+			</div>
+		</div>
+		<script src="../vendor/backbone/test/vendor/json2.js"></script>
+		<script src="../vendor/underscore/test/vendor/jquery.js"></script>
+		<script src="../vendor/underscore/test/vendor/jslitmus.js"></script>
+		<script src="../vendor/platform.js/platform.js"></script>
+		<script>
+			// avoid syntax errors for `QUnit.throws` in older Firefoxes
+			document.write(platform.name == 'Firefox' && /^1\b/.test(platform.version)
+				? '<script src="../vendor/qunit/qunit/qunit-1.8.0.js"><\/script>'
+				: '<script src="../vendor/qunit/qunit/qunit.js"><\/script>'
+			);
+		</script>
+		<script src="test-ui.js"></script>
+		<script>
+			document.write('<script src="../' + QUnit.config.lodashFilename + '.js"><\/script>');
+		</script>
+		<script src="../vendor/underscore/test/collections.js"></script>
+		<script src="../vendor/underscore/test/arrays.js"></script>
+		<script src="../vendor/underscore/test/functions.js"></script>
+		<script src="../vendor/underscore/test/objects.js"></script>
+		<script src="../vendor/underscore/test/utility.js"></script>
+		<script src="../vendor/underscore/test/chaining.js"></script>
+		<script type="text/html" id="template">
+			<%
+			// a comment
+			if (data) { data += 12345; }; %>
+			<li><%= data %></li>
+		</script>
+	</body>
+</html>
