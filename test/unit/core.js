@@ -10,7 +10,7 @@
       scenes : {
         'unloaded' : {
           enter : function() {
-            this.engine.boom();
+            this.rig.boom();
           }
         }
       }
