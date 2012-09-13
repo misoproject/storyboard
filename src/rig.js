@@ -1,4 +1,4 @@
-(function(global, _, $) {
+(function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
 
@@ -146,4 +146,4 @@
 
   });
 
-}(this, _, $));
+}(this, _));
