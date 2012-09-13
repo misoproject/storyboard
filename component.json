@@ -4,6 +4,6 @@
   "main": "dist/miso.rig.0.0.1.js",
   "dependencies": {
     "lodash": "~0.7.0",
-    "underscore.deferred" : "git://github.com/wookiehangover/underscore.deferred.git"
+    "underscore.deferred" : "*"
   }
 }
