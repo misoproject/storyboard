@@ -5,7 +5,7 @@
   Miso.Model = function(data) {
     this._data = data || {};
     this._triggers = {};
-  }
+  };
 
   _.extend(Miso.Model.prototype, {
     get : function(prop) {
@@ -13,17 +13,19 @@
     },
 
     set : function(prop, value) {
-      this._publish('set', prop, value, this._data[prop]);
-      this._publish('set:'+prop, value, this._data[prop]);
-      return this._data[prop] = value;
+      var previousValue = this._data[prop];
+      this._data[prop] = value;
+      this._publish('set', prop, value, previousValue);
+      this._publish('set:'+prop, value, previousValue);
+      return value;
     },
 
     pub : function() {
-      return this._publish.call(this, arguments);
+      return this._publish.apply(this, arguments);
     },
 
     sub : function() {
-      return this.subscribe.call(this, arguments);
+      return this.subscribe.apply(this, arguments);
     },
 
     _publish : function(name) {
@@ -34,7 +36,7 @@
         _.each(this._triggers[name], function(subscription) {
           subscription.callback.apply(subscription.context || this, args);
         }, this);
-      }  
+      }
     },
 
     subscribe : function(name, callback, context, token) {
@@ -75,7 +77,7 @@
       } else {
         this._triggers[name] = [];
       }
-    },
+    }
   });
 
 }(this, _, $));
