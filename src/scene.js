@@ -10,6 +10,7 @@
       config[action] = config[action] || function() { return true; };
       this.handlers[action] = wrap(config[action]);
     }, this);
+    this._context = this; //default
 
     //attach extra methods
     _.each(config, function(prop, name) {
@@ -34,7 +35,7 @@
               complete.reject();
             }, this));
         
-      this.handlers[sceneName].call(this, handlerComplete, args);
+      this.handlers[sceneName].call(this._context, handlerComplete, args);
 
       return complete.promise();
     }

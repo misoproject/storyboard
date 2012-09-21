@@ -3,6 +3,9 @@
   var Miso = global.Miso = (global.Miso || {});
 
   Miso.Rig = function( config ) {
+    this._context = config.context || this;
+    this._id = _.uniqueId('Rig');
+
     this._buildScenes( config.scenes );
     this._triggers = {};
 
@@ -28,6 +31,15 @@
      attach : function(name, rig) {
       this.name = name;
       this.rig = rig;
+      if (rig._context && (rig._context._id !== rig._id)) {
+        this._context = rig._context;
+        console.log('setcontext', this._id, this._context, this.scenes );
+        if (this.scenes) {
+          _.each(this.scenes, function(scene, name) {
+            scene.attach(scene.name, this);
+          }, this);
+        };
+      }
     },
 
     start : function() {

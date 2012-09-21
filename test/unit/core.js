@@ -10,12 +10,42 @@
       scenes : {
         'unloaded' : {
           enter : function() {
+            console.log('ule', this, this.rig);
             this.rig.boom();
           }
         }
       }
     });
     equals(done, true);
+  });
+
+
+  module("Changing a rig's context");
+
+  test("applying a context to a simple rig", function() {
+    var context = {
+      a : true,
+      b : 96
+    };
+
+    var app = new Miso.Rig({
+      context : context,
+      initial : 'unloaded',
+      scenes : {
+        'unloaded' : {
+          enter : function() {
+            equals(this.a, true);
+            equals(this.b, 96);
+          },
+          exit : function() {
+            equals(this.a, true);
+            equals(this.b, 96);
+          }
+        },
+        'loaded' : {}
+      }
+    });
+
   });
 
   test("Deferring starting engine", function() {
@@ -348,5 +378,32 @@
 
     app.to('loaded');
   });
+
+  test("applying a context to nested rigs", function() {
+    var context = {
+      a : true,
+      b : 96
+    };
+
+    var app = new Miso.Rig({
+      context : context,
+      initial : 'unloaded',
+      scenes : {
+        'unloaded' : {
+          enter : function() {
+            equals(this.a, true);
+            equals(this.b, 96);
+          },
+          exit : function() {
+            equals(this.a, true);
+            equals(this.b, 96);
+          }
+        },
+        'loaded' : {}
+      }
+    });
+
+  });
+
 
 }());

@@ -116,3 +116,52 @@ test("Nesting 3 engines inside each other", function() {
   equals(order.join(''), 'abc');
 
 });
+
+ test("applying a context to nested rigs", 6, function() {
+    var context = {
+      a : true,
+      b : 96
+    };
+
+    var app = new Miso.Rig({
+      context : context,
+      initial : 'unloaded',
+      scenes : {
+        'unloaded' : {
+          enter : function() {
+            equals(this.a, true);
+            equals(this.b, 96);
+          },
+          exit : function() {
+            equals(this.a, true);
+            equals(this.b, 96);
+          }
+        },
+
+        'loaded' : new Miso.Rig({
+          initial : 'enter',
+          scenes : {
+
+            enter : {
+              enter : function() {
+                equals(this.a, true, 'true in nested scene');
+                equals(this.b, 96, 'true in nested scene');
+              }
+            },
+
+            exit : {}
+
+          },
+          defer : true
+        })
+      },
+    defer : true
+  });
+
+  app.start();
+  app.to('loaded');
+
+
+        
+ });
+
