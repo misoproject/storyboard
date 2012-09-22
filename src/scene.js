@@ -11,7 +11,7 @@
     if ( config.children ) { //has child scenes
       this._buildChildren( config.children );
       this._initial = config.initial;
-      this.to = _.bind(children_to, this);
+      this.to = children_to;
 
     } else { //leaf scene
 
@@ -20,7 +20,7 @@
         config[action] = config[action] || function() { return true; };
         this.handlers[action] = wrap(config[action]);
       }, this);
-      this.to = _.bind(leaf_to, this);
+      this.to = leaf_to;
 
     }
 
