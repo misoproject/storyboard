@@ -6,7 +6,6 @@
     config = config || {};
     this._context = config.context || this;
     this._id = _.uniqueId('scene');
-    this._events = {};
 
     if ( config.children ) { //has child scenes
       this._buildChildren( config.children );
@@ -77,9 +76,7 @@
         this.children[name] = scene instanceof Miso.Scene ? scene : new Miso.Scene(scene);
         this.children[name].attach(name, this);
       }, this);
-    },
-
-
+    }
   });
 
   //wrap functions so they can declare themselves as optionally

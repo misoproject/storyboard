@@ -15,6 +15,7 @@
     },
 
     subscribe : function(name, callback, context, token) {
+      this._events = this._events || {};
       this._events[name] = this._events[name] || [];
       var subscription = {
         callback : callback,
@@ -27,6 +28,7 @@
     },
 
     subscribeOnce : function(name, callback) {
+      this._events = this._events || {};
       var token = _.uniqueId('t');
       return this.subscribe(name, function() {
         this.unsubscribe(name, { token: token });
