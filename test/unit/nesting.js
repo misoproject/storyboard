@@ -1,5 +1,15 @@
 module("Building complex scenes");
 
+test("scenes names get set when they're attached", function() {
+  var myScene = new Miso.Scene({});
+  var app = new Miso.Scene({
+    initial : 'base',
+    children : { base : myScene }
+  });
+
+  equals(app.children['base'].name, 'base');
+});
+
 test("predefining scenes", function() {
   var order = [];
   var sceneA = new Miso.Scene({
@@ -17,22 +27,24 @@ test("predefining scenes", function() {
     }
   });
 
-  var app = new Miso.Rig({
+  var app = new Miso.Scene({
     initial : 'unloaded',
-    scenes : {
+    children : {
       unloaded : sceneA,
       loaded : sceneB
     }
   });
 
-  app.to('loaded');
-  equals(order.join(''), 'abc');
+  app.start().then(function() {
+    app.to('loaded');
+    equals(order.join(''), 'abc');
+  });
 });
 
 test("Using as engine as a scene", function() {
   var order = [];
-  var subRig = new Miso.Rig({
-    scenes : {
+  var subScene = new Miso.Scene({
+    children : {
       enter : {
         enter : function() {
           order.push('a');
@@ -51,10 +63,10 @@ test("Using as engine as a scene", function() {
     initial : 'enter'
   });
 
-  var app = new Miso.Rig({
+  var app = new Miso.Scene({
     initial : 'unloaded',
-    scenes : {
-      unloaded : subRig,
+    children : {
+      unloaded : subScene,
       loaded : {
         enter : function() {
           order.push('d');
@@ -63,8 +75,10 @@ test("Using as engine as a scene", function() {
     }
   });
 
-  app.to('loaded');
-  equals(order.join(''), 'abcd');
+  app.start().then(function() {
+    app.to('loaded');
+    equals(order.join(''), 'abcd');
+  });
 
 });
 
@@ -72,9 +86,9 @@ test("Using as engine as a scene", function() {
 test("Nesting 3 engines inside each other", function() {
   var order = [];
 
-  var inner = new Miso.Rig({
+  var inner = new Miso.Scene({
     initial : 'enter',
-    scenes : {
+    children : {
       enter : {
         enter : function() {
           order.push('c');
@@ -84,9 +98,9 @@ test("Nesting 3 engines inside each other", function() {
     defer : true
   });
 
-  var outer = new Miso.Rig({
+  var outer = new Miso.Scene({
     initial : 'enter',
-    scenes : {
+    children : {
       enter : {
         enter : function() {
           order.push('b');
@@ -97,9 +111,9 @@ test("Nesting 3 engines inside each other", function() {
     defer : true
   });
 
-  var app = new Miso.Rig({
+  var app = new Miso.Scene({
     initial : 'a',
-    scenes : {
+    children : {
       a : {
         enter : function() {
           order.push('a');
@@ -110,58 +124,54 @@ test("Nesting 3 engines inside each other", function() {
     }
   });
  
-  app.to('b');
-  app.to('c');
-
-  equals(order.join(''), 'abc');
-
+  app.start().then(function() {
+    app.to('b');
+    app.to('c');
+    equals(order.join(''), 'abc');
+  });
 });
 
- test("applying a context to nested rigs", 6, function() {
-    var context = {
-      a : true,
-      b : 96
-    };
+test("applying a context to nested rigs", 6, function() {
+  var context = {
+    a : true,
+    b : 96
+  };
 
-    var app = new Miso.Rig({
-      context : context,
-      initial : 'unloaded',
-      scenes : {
-        'unloaded' : {
-          enter : function() {
-            equals(this.a, true);
-            equals(this.b, 96);
-          },
-          exit : function() {
-            equals(this.a, true);
-            equals(this.b, 96);
-          }
+  var app = new Miso.Scene({
+    context : context,
+    initial : 'unloaded',
+    children : {
+      unloaded : {
+        enter : function() {
+          equals(this.a, true);
+          equals(this.b, 96);
         },
-
-        'loaded' : new Miso.Rig({
-          initial : 'enter',
-          scenes : {
-
-            enter : {
-              enter : function() {
-                equals(this.a, true, 'true in nested scene');
-                equals(this.b, 96, 'true in nested scene');
-              }
-            },
-
-            exit : {}
-
-          },
-          defer : true
-        })
+        exit : function() {
+          equals(this.a, true);
+          equals(this.b, 96);
+        }
       },
-    defer : true
+
+      loaded : new Miso.Scene({
+        initial : 'enter',
+        children : {
+
+          enter : {
+            enter : function() {
+              equals(this.a, true, 'true in nested scene');
+              equals(this.b, 96, 'true in nested scene');
+            }
+          },
+
+          exit : {}
+
+        }
+      })
+    }
   });
 
-  app.start();
-  app.to('loaded');
-
-
-        
- });
+  app.start().then(function() {
+    app.to('loaded');
+  });
+});
 
