@@ -34,7 +34,7 @@
   Scene.HANDLERS = ['enter','exit'];
   Scene.BLACKLIST = ['initial','children','enter','exit','context'];
 
-  _.extend(Scene.prototype, {
+  _.extend(Scene.prototype, Miso.Events, {
     attach : function(name, parent) {
       this.name = name;
       this.parent = parent;
@@ -78,30 +78,6 @@
         this.children[name].attach(name, this);
       }, this);
     },
-
-    // _publish : function(name) {
-      // var args = _.toArray(arguments);
-      // args.shift();
-
-      // if (this._triggers && this._triggers[name]) {
-        // _.each(this._triggers[name], function(subscription) {
-          // subscription.callback.apply(subscription.context || this, args);
-        // }, this);
-      // }  
-    // },
-
-    // subscribe : function(name, callback, context, token) {
-      // this._triggers[name] = this._triggers[name] || [];
-      // var subscription = {
-        // callback : callback,
-        // token : (token || _.uniqueId('t')),
-        // context : context || this
-      // };
-
-      // this._triggers[name].push(subscription);
-
-      // return subscription.token;
-    // }
 
 
   });
@@ -156,20 +132,28 @@
         complete = this._complete = deferred || _.Deferred(),
         exitComplete = _.Deferred(),
         enterComplete = _.Deferred(),
+        publish = _.bind(function(name) {
+          this.publish(name, (fromScene ? fromScene.name : null), toScene.name);
+        }, this),
         bailout = _.bind(function() {
           this._transitioning = false;
           complete.reject();
+          publish('fail');
         }, this),
         success = _.bind(function() {
           this._transitioning = false;
           this._current = toScene;
           complete.resolve();
+          publish('done');
         }, this);
 
     //Can't fire a transition that isn't defined
     if (!toScene) {
       throw "Scene '" + sceneName + "' not found!";
     }
+
+    console.log('pub', publish);
+    publish('start');
 
     //we in the middle of a transition?
     if (this._transitioning) { 
@@ -202,4 +186,3 @@
 
 
 }(this, _));
-

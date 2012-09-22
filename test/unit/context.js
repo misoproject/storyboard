@@ -7,7 +7,6 @@ test("extending a scene with additional methods", function() {
       done = true;
     },
     enter : function() {
-      console.log('en', this);
       this.boom();
     }
   });
