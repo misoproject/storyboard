@@ -1,10 +1,10 @@
 /**
-* Miso.Rig - v0.0.1 - 9/13/2012
+* Miso.Rig - v0.0.1 - 9/23/2012
 * http://github.com/misoproject/rig
 * Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
-* https://github.com/misoproject/rig/blob/master/LICENSE-MIT 
-* https://github.com/misoproject/rig/blob/master/LICENSE-GPL 
+* https://github.com/misoproject/scene/blob/master/LICENSE-MIT 
+* https://github.com/misoproject/scene/blob/master/LICENSE-GPL 
 */
 
 /*!
@@ -4899,107 +4899,144 @@
 })(this);
 
 /**
-* Miso.Rig - v0.0.1 - 9/13/2012
+* Miso.Rig - v0.0.1 - 9/23/2012
 * http://github.com/misoproject/rig
 * Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
-* https://github.com/misoproject/rig/blob/master/LICENSE-MIT 
-* https://github.com/misoproject/rig/blob/master/LICENSE-GPL 
+* https://github.com/misoproject/scene/blob/master/LICENSE-MIT 
+* https://github.com/misoproject/scene/blob/master/LICENSE-GPL 
 */
 
 (function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
 
-  Miso.Rig = function( config ) {
-    this._buildScenes( config.scenes );
-    this._triggers = {};
+  Miso.Events = {
+    publish : function(name) {
+      var args = _.toArray(arguments);
+      args.shift();
 
-     //attach extra methods
+      if (this._events && this._events[name]) {
+        _.each(this._events[name], function(subscription) {
+          subscription.callback.apply(subscription.context || this, args);
+        }, this);
+      }  
+    },
+
+    subscribe : function(name, callback, options) {
+      options = options || {};
+      this._events = this._events || {};
+      this._events[name] = this._events[name] || [];
+
+      var subscription = {
+        callback : callback,
+        priority : options.priority || 0, 
+        token : options.token || _.uniqueId('t'),
+        context : options.context || this
+      };
+      var position;
+     _.each(this._events[name], function(event, index) {
+       if (!_.isUndefined(position)) { return; }
+       if (event.priority <= subscription.priority) {
+         position = index;
+       }
+     });
+
+      this._events[name].splice(position, 0, subscription);
+      return subscription.token;
+    },
+
+    subscribeOnce : function(name, callback) {
+      this._events = this._events || {};
+      var token = _.uniqueId('t');
+      return this.subscribe(name, function() {
+        console.log('unsub');
+        this.unsubscribe(name, { token : token });
+        callback.apply(this, arguments);
+      }, this, token);
+    },
+
+    unsubscribe : function(name, identifier) {
+
+      if (_.isUndefined(this._events[name])) { return this; }
+
+      if (_.isFunction(identifier)) {
+        this._events[name] = _.reject(this._events[name], function(b) {
+          return b.callback === identifier;
+        });
+
+      } else if ( _.isString(identifier)) {
+        this._events[name] = _.reject(this._events[name], function(b) {
+          return b.token === identifier;
+        });
+
+      } else {
+        this._events[name] = [];
+      }
+    }
+
+  };
+
+}(this, _));
+
+(function(global, _) {
+
+  var Miso = global.Miso = (global.Miso || {});
+
+  var Scene = Miso.Scene = function( config ) {
+    config = config || {};
+    this._context = config.context || this;
+    this._id = _.uniqueId('scene');
+
+    if ( config.children ) { //has child scenes
+      this._buildChildren( config.children );
+      this._initial = config.initial;
+      this.to = children_to;
+
+    } else { //leaf scene
+
+      this.handlers = {};
+      _.each(Scene.HANDLERS, function(action) {
+        config[action] = config[action] || function() { return true; };
+        this.handlers[action] = wrap(config[action]);
+      }, this);
+      this.to = leaf_to;
+
+    }
+
     _.each(config, function(prop, name) {
-      if (_.indexOf(Rig.BLACKLIST, name) !== -1) { return; }
+      if (_.indexOf(Scene.BLACKLIST, name) !== -1) { return; }
       this[name] = prop;
     }, this);
 
-    if (config.defer) {
-      this._initial = config.initial;
-    } else {
-      this.to(config.initial);
-    }
   };
 
-  var Rig = Miso.Rig;
+  Scene.HANDLERS = ['enter','exit'];
+  Scene.BLACKLIST = ['initial','children','enter','exit','context'];
 
-  Rig.ERRORS = {};
-  Rig.BLACKLIST = ['initial','scenes','defer'];
-
-  _.extend(Rig.prototype, {
-     attach : function(name, rig) {
+  _.extend(Scene.prototype, Miso.Events, {
+    attach : function(name, parent) {
       this.name = name;
-      this.rig = rig;
+      this.parent = parent;
+      //if the parent has a custom context the child should inherit it
+      if (parent._context && (parent._context._id !== parent._id)) {
+        this._context = parent._context;
+        if (this.children) {
+          _.each(this.children, function(scene, name) {
+            scene.attach(scene.name, this);
+          }, this);
+        }
+      }
     },
 
     start : function() {
-      if (this._current) { //already started 
-        return _.Deferred().reject().promise(); 
-      }
-      return this.to(this._initial);
+      //if we've already started just return a happily resoved deferred
+      return this._current ? _.Deferred().resolve() : this.to(this._initial);
     },
 
     cancelTransition : function() {
       this._complete.reject();
       this._transitioning = false;
-    },
-
-    to : function( sceneName, argsArr, deferred ) {
-      var toScene = this.scenes[sceneName],
-          fromScene = this._current,
-          args = argsArr ? argsArr : [],
-          complete = this._complete = deferred || _.Deferred(),
-          exitComplete = _.Deferred(),
-          enterComplete = _.Deferred(),
-          bailout = _.bind(function() {
-            this._transitioning = false;
-            complete.reject();
-          }, this),
-          success = _.bind(function() {
-            this._transitioning = false;
-            this._current = toScene;
-            complete.resolve();
-          }, this);
-
-      //Can't fire a transition that isn't defined
-      if (!toScene) {
-        throw "Scene '" + sceneName + "' not found!";
-      }
-
-      //we in the middle of a transition?
-      if (this._transitioning) { 
-        return complete.reject();
-      }
-      
-      this._transitioning = true;
-
-      
-      //initial event so there's no from scene
-      if (!fromScene) {
-        exitComplete.resolve();
-        toScene.to('enter', args, enterComplete)
-          .fail(bailout);
-      } else {
-        //run before and after in order
-        //if either fail, run the bailout
-        fromScene.to('exit', args, exitComplete)
-          .done(function() {
-            toScene.to('enter', args, enterComplete).fail(bailout);
-          })
-          .fail(bailout);
-      }
-
-      //all events done, let's tidy up
-      _.when(exitComplete, enterComplete).then(success);
-
-      return complete.promise();
     },
 
     scene : function() {
@@ -5014,88 +5051,12 @@
       return (this._transitioning === true);
     },
 
-    _buildScenes : function( scenes ) {
-      this.scenes = {};
-      _.each(scenes, function(originalScene, name) {
-        var scene;
-        if (originalScene instanceof Miso.Scene || originalScene instanceof Miso.Rig) {
-          scene = originalScene;
-        } else {
-          scene = new Miso.Scene(originalScene);
-        }
-        scene.attach(name, this);
-        this.scenes[name] = scene;
+    _buildChildren: function( scenes ) {
+      this.children = {};
+      _.each(scenes, function(scene, name) {
+        this.children[name] = scene instanceof Miso.Scene ? scene : new Miso.Scene(scene);
+        this.children[name].attach(name, this);
       }, this);
-    },
-
-    _publish : function(name) {
-      var args = _.toArray(arguments);
-      args.shift();
-
-      if (this._triggers && this._triggers[name]) {
-        _.each(this._triggers[name], function(subscription) {
-          subscription.callback.apply(subscription.context || this, args);
-        }, this);
-      }  
-    },
-
-    subscribe : function(name, callback, context, token) {
-      this._triggers[name] = this._triggers[name] || [];
-      var subscription = {
-        callback : callback,
-        token : (token || _.uniqueId('t')),
-        context : context || this
-      };
-
-      this._triggers[name].push(subscription);
-
-      return subscription.token;
-    }
-
-
-  });
-
-}(this, _));
-
-(function(global, _) {
-
-  var Miso = global.Miso = (global.Miso || {});
-
-  Miso.Scene = function( config ) {
-    this.triggers = {};
-    this.handlers = {};
-    var handlers = ['enter','exit'];
-    _.each(handlers, function(action) {
-      config[action] = config[action] || function() { return true; };
-      this.handlers[action] = wrap(config[action]);
-    }, this);
-
-    //attach extra methods
-    _.each(config, function(prop, name) {
-      if (_.indexOf(handlers, name) !== -1) { return; }
-      this[name] = prop;
-    }, this);
-  };
-
-  _.extend(Miso.Scene.prototype, Miso.Rig.prototype, {
-    to : function( sceneName, argsArr, deferred ) {
-      this._transitioning = true;
-      var complete = this._complete = deferred || _.Deferred(),
-          args = argsArr ? argsArr : [],
-          handlerComplete = _.Deferred()
-            .done(_.bind(function() {
-              this._transitioning = false;
-              this._current = sceneName;
-              complete.resolve();
-            }, this))
-            .fail(_.bind(function() {
-              this._transitioning = false;
-              complete.reject();
-            }, this));
-        
-      this.handlers[sceneName].call(this, handlerComplete, args);
-
-      return complete.promise();
     }
   });
 
@@ -5121,8 +5082,85 @@
     };
   }
 
+  //Used as the to function to scenes which do not have children
+  function leaf_to( sceneName, argsArr, deferred ) {
+    this._transitioning = true;
+    var complete = this._complete = deferred || _.Deferred(),
+    args = argsArr ? argsArr : [],
+    handlerComplete = _.Deferred()
+      .done(_.bind(function() {
+        this._transitioning = false;
+        this._current = sceneName;
+        complete.resolve();
+      }, this))
+      .fail(_.bind(function() {
+        this._transitioning = false;
+        complete.reject();
+      }, this));
+
+    this.handlers[sceneName].call(this._context, handlerComplete, args);
+
+    return complete.promise();
+  }
+
+  function children_to( sceneName, argsArr, deferred ) {
+    var toScene = this.children[sceneName],
+        fromScene = this._current,
+        args = argsArr ? argsArr : [],
+        complete = this._complete = deferred || _.Deferred(),
+        exitComplete = _.Deferred(),
+        enterComplete = _.Deferred(),
+        publish = _.bind(function(name) {
+          this.publish(name, (fromScene ? fromScene.name : null), toScene.name);
+        }, this),
+        bailout = _.bind(function() {
+          this._transitioning = false;
+          complete.reject();
+          publish('fail');
+        }, this),
+        success = _.bind(function() {
+          this._transitioning = false;
+          this._current = toScene;
+          complete.resolve();
+          publish('done');
+        }, this);
+
+    //Can't fire a transition that isn't defined
+    if (!toScene) {
+      throw "Scene '" + sceneName + "' not found!";
+    }
+
+    console.log('pub', publish);
+    publish('start');
+
+    //we in the middle of a transition?
+    if (this._transitioning) { 
+      return complete.reject();
+    }
+
+    this._transitioning = true;
+
+      
+    //initial event so there's no from scene
+    if (!fromScene) {
+      exitComplete.resolve();
+      toScene.to('enter', args, enterComplete)
+      .fail(bailout);
+    } else {
+      //run before and after in order
+      //if either fail, run the bailout
+      fromScene.to('exit', args, exitComplete)
+      .done(function() {
+        toScene.to('enter', args, enterComplete).fail(bailout);
+      })
+      .fail(bailout);
+    }
+
+    //all events done, let's tidy up
+    _.when(exitComplete, enterComplete).then(success);
+
+    return complete.promise();
+  }
+
+
 }(this, _));
-
-
-
-

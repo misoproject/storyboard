@@ -1,5 +1,11 @@
-var _ = require("lodash");
-_.mixin(require("underscore.deferred"));
+/**
+* Miso.Rig - v0.0.1 - 9/23/2012
+* http://github.com/misoproject/rig
+* Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
+* Dual Licensed: MIT, GPL
+* https://github.com/misoproject/scene/blob/master/LICENSE-MIT 
+* https://github.com/misoproject/scene/blob/master/LICENSE-GPL 
+*/
 
 /**
 * Miso.Rig - v0.0.1 - 9/23/2012
@@ -268,6 +274,24 @@ _.mixin(require("underscore.deferred"));
 
 }(this, _));
 
+(function(global) {
 
-// Expose the module
-module.exports = this.Miso;
+  var Miso = global.Miso || {};
+  delete window.Miso;
+
+  // CommonJS module is defined
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      // Export module
+      module.exports = Miso;
+    }
+    exports.miso = Miso;
+
+  } else if (typeof define === 'function' && define.amd) {
+    // Register as a named module with AMD.
+    define('miso', [], function() {      
+      return Miso;
+    });
+  }
+  
+}(this));

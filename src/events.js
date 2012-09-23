@@ -14,16 +14,26 @@
       }  
     },
 
-    subscribe : function(name, callback, context, token) {
+    subscribe : function(name, callback, options) {
+      options = options || {};
       this._events = this._events || {};
       this._events[name] = this._events[name] || [];
+
       var subscription = {
         callback : callback,
-        token : (token || _.uniqueId('t')),
-        context : context || this
+        priority : options.priority || 0, 
+        token : options.token || _.uniqueId('t'),
+        context : options.context || this
       };
+      var position;
+     _.each(this._events[name], function(event, index) {
+       if (!_.isUndefined(position)) { return; }
+       if (event.priority <= subscription.priority) {
+         position = index;
+       }
+     });
 
-      this._events[name].push(subscription);
+      this._events[name].splice(position, 0, subscription);
       return subscription.token;
     },
 
@@ -31,24 +41,26 @@
       this._events = this._events || {};
       var token = _.uniqueId('t');
       return this.subscribe(name, function() {
-        this.unsubscribe(name, { token: token });
+        console.log('unsub');
+        this.unsubscribe(name, { token : token });
         callback.apply(this, arguments);
       }, this, token);
     },
 
-    unsubscribe : function(name, options) {
-      options = options || {};
+    unsubscribe : function(name, identifier) {
 
       if (_.isUndefined(this._events[name])) { return this; }
 
-      if (options.token) {
+      if (_.isFunction(identifier)) {
         this._events[name] = _.reject(this._events[name], function(b) {
-          return b.token === options.token;
+          return b.callback === identifier;
         });
-      } else if (options.callback) {
+
+      } else if ( _.isString(identifier)) {
         this._events[name] = _.reject(this._events[name], function(b) {
-          return b.callback === options.callback;
+          return b.token === identifier;
         });
+
       } else {
         this._events[name] = [];
       }

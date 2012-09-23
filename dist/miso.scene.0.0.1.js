@@ -1,6 +1,3 @@
-var _ = require("lodash");
-_.mixin(require("underscore.deferred"));
-
 /**
 * Miso.Rig - v0.0.1 - 9/23/2012
 * http://github.com/misoproject/rig
@@ -267,7 +264,3 @@ _.mixin(require("underscore.deferred"));
 
 
 }(this, _));
-
-
-// Expose the module
-module.exports = this.Miso;
