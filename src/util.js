@@ -5,10 +5,21 @@
 
   // wrap functions so they can declare themselves as optionally
   // asynchronous without having to worry about deferred management.
-  Util._wrap = function(func) {
-    return function(deferred, args) {
+  Util._wrap = function(func, name) {
+    
+    //don't wrap non-functions
+    if ( !_.isFunction(func)) { return func; }
+    //don't wrap private functions
+    if ( /^_/.test(name) ) { return func; }
+    //don't wrap wrapped functions
+    if (func.__wrapped) { return func; }
+
+    var wrappedFunc = function(args, deferred) {
       var async = false,
           result;
+
+          deferred = deferred || _.Deferred();
+          
           this.async = function() {
             async = true;
             return function(pass) {
@@ -23,6 +34,9 @@
       }
       return deferred.promise();
     };
+
+    wrappedFunc.__wrapped = true;
+    return wrappedFunc;
   };
 
 }(this, _, $));

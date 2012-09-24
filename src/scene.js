@@ -22,7 +22,7 @@
         
         //wrap functions so they can declare themselves as optionally
         //asynchronous without having to worry about deferred management.
-        this.handlers[action] = Util._wrap(config[action]);
+        this.handlers[action] = Util._wrap(config[action], action);
       
       }, this);
       this.to = leaf_to;
@@ -100,7 +100,7 @@
         complete.reject();
       }, this));
 
-    this.handlers[sceneName].call(this._context, handlerComplete, args);
+    this.handlers[sceneName].call(this._context, args, handlerComplete);
 
     return complete.promise();
   }
