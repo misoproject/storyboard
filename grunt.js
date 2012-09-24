@@ -27,6 +27,7 @@ module.exports = function(grunt) {
         src: [
           "<banner>",
           "src/events.js",
+          "src/util.js",
           "src/scene.js"
         ]
       },

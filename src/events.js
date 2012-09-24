@@ -41,7 +41,6 @@
       this._events = this._events || {};
       var token = _.uniqueId('t');
       return this.subscribe(name, function() {
-        console.log('unsub');
         this.unsubscribe(name, { token : token });
         callback.apply(this, arguments);
       }, this, token);

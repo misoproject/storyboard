@@ -1,6 +1,7 @@
 (function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
+  var Util = Miso.Util;
 
   var Scene = Miso.Scene = function( config ) {
     config = config || {};
@@ -16,11 +17,15 @@
 
       this.handlers = {};
       _.each(Scene.HANDLERS, function(action) {
+        
         config[action] = config[action] || function() { return true; };
-        this.handlers[action] = wrap(config[action]);
+        
+        //wrap functions so they can declare themselves as optionally
+        //asynchronous without having to worry about deferred management.
+        this.handlers[action] = Util._wrap(config[action]);
+      
       }, this);
       this.to = leaf_to;
-
     }
 
     _.each(config, function(prop, name) {
@@ -79,28 +84,6 @@
     }
   });
 
-  //wrap functions so they can declare themselves as optionally
-  //asynchronous without having to worry about deferred management.
-  function wrap(func) {
-    return function(deferred, args) {
-      var async = false,
-          result;
-          this.async = function() {
-            async = true;
-            return function(pass) {
-              return (pass !== false) ? deferred.resolve() : deferred.reject();
-            };
-          };
-
-      result = func.apply(this, args);
-      this.async = undefined;
-      if (!async) {
-        return (result !== false) ? deferred.resolve() : deferred.reject();
-      }
-      return deferred.promise();
-    };
-  }
-
   //Used as the to function to scenes which do not have children
   function leaf_to( sceneName, argsArr, deferred ) {
     this._transitioning = true;
@@ -149,7 +132,6 @@
       throw "Scene '" + sceneName + "' not found!";
     }
 
-    console.log('pub', publish);
     publish('start');
 
     //we in the middle of a transition?

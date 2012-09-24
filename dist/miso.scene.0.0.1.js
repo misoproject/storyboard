@@ -1,5 +1,5 @@
 /**
-* Miso.Rig - v0.0.1 - 9/23/2012
+* Miso.Rig - v0.0.1 - 9/24/2012
 * http://github.com/misoproject/rig
 * Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
@@ -50,7 +50,6 @@
       this._events = this._events || {};
       var token = _.uniqueId('t');
       return this.subscribe(name, function() {
-        console.log('unsub');
         this.unsubscribe(name, { token : token });
         callback.apply(this, arguments);
       }, this, token);
@@ -79,9 +78,39 @@
 
 }(this, _));
 
+(function(global, _, $) {
+
+  var Miso = global.Miso = global.Miso || {};
+  var Util = Miso.Util = Miso.Util || {};
+
+  // wrap functions so they can declare themselves as optionally
+  // asynchronous without having to worry about deferred management.
+  Util._wrap = function(func) {
+    return function(deferred, args) {
+      var async = false,
+          result;
+          this.async = function() {
+            async = true;
+            return function(pass) {
+              return (pass !== false) ? deferred.resolve() : deferred.reject();
+            };
+          };
+
+      result = func.apply(this, args);
+      this.async = undefined;
+      if (!async) {
+        return (result !== false) ? deferred.resolve() : deferred.reject();
+      }
+      return deferred.promise();
+    };
+  };
+
+}(this, _, $));
+
 (function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
+  var Util = Miso.Util;
 
   var Scene = Miso.Scene = function( config ) {
     config = config || {};
@@ -97,11 +126,15 @@
 
       this.handlers = {};
       _.each(Scene.HANDLERS, function(action) {
+        
         config[action] = config[action] || function() { return true; };
-        this.handlers[action] = wrap(config[action]);
+        
+        //wrap functions so they can declare themselves as optionally
+        //asynchronous without having to worry about deferred management.
+        this.handlers[action] = Util._wrap(config[action]);
+      
       }, this);
       this.to = leaf_to;
-
     }
 
     _.each(config, function(prop, name) {
@@ -160,28 +193,6 @@
     }
   });
 
-  //wrap functions so they can declare themselves as optionally
-  //asynchronous without having to worry about deferred management.
-  function wrap(func) {
-    return function(deferred, args) {
-      var async = false,
-          result;
-          this.async = function() {
-            async = true;
-            return function(pass) {
-              return (pass !== false) ? deferred.resolve() : deferred.reject();
-            };
-          };
-
-      result = func.apply(this, args);
-      this.async = undefined;
-      if (!async) {
-        return (result !== false) ? deferred.resolve() : deferred.reject();
-      }
-      return deferred.promise();
-    };
-  }
-
   //Used as the to function to scenes which do not have children
   function leaf_to( sceneName, argsArr, deferred ) {
     this._transitioning = true;
@@ -230,7 +241,6 @@
       throw "Scene '" + sceneName + "' not found!";
     }
 
-    console.log('pub', publish);
     publish('start');
 
     //we in the middle of a transition?
