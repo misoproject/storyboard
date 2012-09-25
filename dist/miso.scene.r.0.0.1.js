@@ -1,6 +1,6 @@
 /**
-* Miso.Rig - v0.0.1 - 9/24/2012
-* http://github.com/misoproject/rig
+* Miso.Scene - v0.0.1 - 9/25/2012
+* http://github.com/misoproject/scene
 * Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
 * https://github.com/misoproject/scene/blob/master/LICENSE-MIT 
@@ -8,8 +8,8 @@
 */
 
 /**
-* Miso.Rig - v0.0.1 - 9/24/2012
-* http://github.com/misoproject/rig
+* Miso.Scene - v0.0.1 - 9/25/2012
+* http://github.com/misoproject/scene
 * Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
 * https://github.com/misoproject/scene/blob/master/LICENSE-MIT 
@@ -87,7 +87,7 @@
 
 }(this, _));
 
-(function(global, _, $) {
+(function(global, _) {
 
   var Miso = global.Miso = global.Miso || {};
   var Util = Miso.Util = Miso.Util || {};
@@ -128,7 +128,7 @@
     return wrappedFunc;
   };
 
-}(this, _, $));
+}(this, _));
 
 (function(global, _) {
 
@@ -187,7 +187,11 @@
 
     start : function() {
       //if we've already started just return a happily resoved deferred
-      return this._current ? _.Deferred().resolve() : this.to(this._initial);
+      if (typeof this._current !== "undefined") {
+        return _.Deferred().resolve();
+      } else {
+        return this.to(this._initial);
+      }
     },
 
     cancelTransition : function() {

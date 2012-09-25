@@ -201,7 +201,7 @@ var app = new Miso.Engine({
 
 ## Contributing ##
 
-Miso.Rig depends on grunt, bower and npm. Be sure to run:
+Miso.Scene depends on grunt, bower and npm. Be sure to run:
 
 `npm install`
 
@@ -211,7 +211,7 @@ to get all require node packages and:
 
 to get all client-side libraries required for final builds.
 
-To build Miso.Rig, call
+To build Miso.Scene, call
 
 `grunt`
 

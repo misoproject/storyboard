@@ -1,7 +1,0 @@
-*.custom.*
-.*
-dist/
-doc/*.php
-node_modules/
-perf/*.sh
-test/*.sh

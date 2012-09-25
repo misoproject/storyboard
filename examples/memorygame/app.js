@@ -6,9 +6,10 @@
     flippedCards : []
   };
 
-  var game = new Miso.Rig({
+  var game = new Miso.Scene({
 
     initial : 'fillBoard',
+
     defer : true,
 
     log : function(messagesArray) {
@@ -34,7 +35,7 @@
       }
     },
 
-    scenes : {
+    children : {
 
       // this scene is responsible for filling out the board
       fillBoard : {
@@ -53,7 +54,7 @@
           // we have (size x size)/2 unique pieces
           // make sure it's an even size board!
           if ((config.size * config.size)/2 % 2 !== 0) {
-            this.rig.log([
+            this.parent.log([
               "Board size must be an even multiple!"
             ]);
             return false;
@@ -95,7 +96,7 @@
             i++;
           }
 
-          this.rig.log(["Initialized Board!"])
+          this.parent.log(["Initialized Board!"])
           return true;
         }
 
@@ -104,7 +105,7 @@
 
       start : {
         enter : function() {
-          this.rig.log([
+          this.parent.log([
             "Welcome to the memory game. Your board is:" +
             config.size + " x " + config.size + " large.",
             "You can flip a tile by calling flip(row, column)."
@@ -114,7 +115,7 @@
 
       noneFlipped : {
         enter : function(){
-          this.rig.log(["Let's flip two cards:"]);
+          this.parent.log(["Let's flip two cards:"]);
         }
       },
 
@@ -126,7 +127,7 @@
 
           // there's only one card flipped, 
           // tell us what it is and ask for another flip
-          this.rig.log([
+          this.parent.log([
             "You have one card flipped! It is: [" +
             config.board[r][c].v + "]",
             "Flip another one."
@@ -141,7 +142,7 @@
           config.flippedCards.push(config.board[r][c]);
 
           // second card flip!
-          this.rig.log([
+          this.parent.log([
             "You flipped the second card! It is: [" +
             config.board[r][c].v + "]"
           ]);
@@ -159,7 +160,7 @@
 
       goodFlip : {
         enter : function() {
-          this.rig.log(["Yey! That's a match!"]);
+          this.parent.log(["Yey! That's a match!"]);
         }
       },
 
@@ -169,13 +170,13 @@
           config.flippedCards[0].show = false;
           config.flippedCards[1].show = false;
           config.flippedCards = [];
-          this.rig.log(["Oh no! That's a bad flip"]);
+          this.parent.log(["Oh no! That's a bad flip"]);
         }
       },
 
       error : {
         enter : function(message) {
-          this.rig.error([message]);
+          this.parent.error([message]);
         }
       } 
     }
@@ -200,17 +201,19 @@
     }
     else if (game.is("oneFlipped")) {
       
-      game.to("twoFlipped", [r,c])
-      game.to("checking")
-        .done(function() {
-          return game.to("goodFlip");
-        })
-        .fail(function() {
+      game.to("twoFlipped", [r,c]).then(function() {
+        game.to("checking").then(
+          function() {
+            return game.to("goodFlip");
+          },
+          function() {
             return game.to("badFlip");
-        })
-        .always(function() {
+          }
+        ).then(function() {
           return game.to("noneFlipped");
-        });
+        });  
+      })
+      
 
     }
   };

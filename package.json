@@ -1,31 +1,31 @@
 {
-  "name" : "miso.rig",
-  "title" : "Miso.Rig",
-  "description" : "Rig is a state management library that makes orchestrating the flows of your application easy using frames.",
+  "name" : "miso.scene",
+  "title" : "Miso.Scene",
+  "description" : "Scene is a state management library that makes orchestrating the flows of your application easy using scenes.",
   "version" : "0.0.1",
-  "homepage" : "http://github.com/misoproject/rig",
+  "homepage" : "http://github.com/misoproject/scene",
   "authors" : "Alex Graul, Irene Ros, Rich Harris",
 
   "bugs" : {
-    "url" : "http://github.com/misoproject/rig/issues"
+    "url" : "http://github.com/misoproject/scene/issues"
   },
 
   "licenses" : [
     {
       "type" : "MIT",
-      "url" : "http://github.com/misoproject/rig/blob/master/LICENSE-MIT"
+      "url" : "http://github.com/misoproject/scene/blob/master/LICENSE-MIT"
     },
     {
       "type" : "GPL",
-      "url" : "http://github.com/misoproject/rig/blob/master/LICENSE-GPL"
+      "url" : "http://github.com/misoproject/scene/blob/master/LICENSE-GPL"
     }
   ],
 
-  "main": "dist/node/miso.rig.deps.0.0.1",
+  "main": "dist/node/miso.scene.deps.0.0.1",
 
   "repository": {
     "type": "git",
-    "url": "git@github.com:misoproject/rig.git"
+    "url": "git@github.com:misoproject/scene.git"
   },
 
   "keywords" : [ "state", "state management" ],

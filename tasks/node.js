@@ -14,11 +14,11 @@ module.exports = function(grunt) {
     var read = grunt.file.read;
 
     var output = grunt.template.process(read(nodeConfig.wrapper), {
-      misoRig: read(grunt.template.process(nodeConfig.misoRig))
+      misoScene: read(grunt.template.process(nodeConfig.misoScene))
     });
 
     // Write the contents out
-    grunt.file.write("dist/node/miso.rig." + grunt.template.process(grunt.config("pkg").version) + ".js", output);
+    grunt.file.write("dist/node/miso.scene." + grunt.template.process(grunt.config("pkg").version) + ".js", output);
   });
 
 };

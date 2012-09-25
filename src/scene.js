@@ -55,7 +55,11 @@
 
     start : function() {
       //if we've already started just return a happily resoved deferred
-      return this._current ? _.Deferred().resolve() : this.to(this._initial);
+      if (typeof this._current !== "undefined") {
+        return _.Deferred().resolve();
+      } else {
+        return this.to(this._initial);
+      }
     },
 
     cancelTransition : function() {

@@ -18,7 +18,7 @@ module.exports = function(grunt) {
 
     node: {
       wrapper: "src/node/compat.js",
-      misoRig: "dist/miso.scene.<%= pkg.version %>.js"
+      misoScene: "dist/miso.scene.<%= pkg.version %>.js"
     },
 
     concat : {
@@ -45,8 +45,8 @@ module.exports = function(grunt) {
         dest : "dist/miso.scene.deps.<%= pkg.version %>.js",
         src : [
           "<banner>",
-          "components/lodash/lodash.js",
-          "components/underscore.deferred/underscore.deferred.js",
+          "libs/lodash.js",
+          "libs/underscore.deferred.js",
           "dist/miso.scene.<%= pkg.version %>.js"
         ]
       },

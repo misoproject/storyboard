@@ -1,4 +1,4 @@
-(function(global, _, $) {
+(function(global, _) {
 
   var Miso = global.Miso = global.Miso || {};
   var Util = Miso.Util = Miso.Util || {};
@@ -39,4 +39,4 @@
     return wrappedFunc;
   };
 
-}(this, _, $));
+}(this, _));
