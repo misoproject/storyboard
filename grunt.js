@@ -11,7 +11,6 @@ module.exports = function(grunt) {
                 '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.authors %>;\n' +
                 '* Dual Licensed: <%= _.pluck(pkg.licenses, "type").join(", ") %>\n' +
                 '* https://github.com/misoproject/scene/blob/master/LICENSE-MIT \n' +
-                '* https://github.com/misoproject/scene/blob/master/LICENSE-GPL \n' +
                 '*/',
       lastbuild : '<%= grunt.template.today("yyyy/mm/dd hh:ss") %>'
     },

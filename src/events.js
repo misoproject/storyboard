@@ -26,12 +26,12 @@
         context : options.context || this
       };
       var position;
-     _.each(this._events[name], function(event, index) {
-       if (!_.isUndefined(position)) { return; }
-       if (event.priority <= subscription.priority) {
-         position = index;
-       }
-     });
+      _.each(this._events[name], function(event, index) {
+        if (!_.isUndefined(position)) { return; }
+        if (event.priority <= subscription.priority) {
+          position = index;
+        }
+      });
 
       this._events[name].splice(position, 0, subscription);
       return subscription.token;
