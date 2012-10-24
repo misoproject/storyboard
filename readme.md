@@ -31,7 +31,7 @@ scene is entered and exited respectively. Both of these handlers can be made to 
 ```javascript
 var app = new Miso.Scene({
   initial : 'unloaded',
-  scenes : {
+  children : {
     'unloaded' : {
       exit : function() {
         var done = this.async();
@@ -62,7 +62,7 @@ loadingComplete.done(function() {
 ```javascript
 var app = new Miso.Scene({
   initial : 'unloaded',
-  scenes : {
+  children : {
     unloaded : {},
     loaded : {}
   }
@@ -80,7 +80,7 @@ It is also possible to pass in your own deferred to the `to` method, along with 
 ```javascript
 var app = new Miso.Scene({
   initial : 'unloaded',
-  scenes : {
+  children : {
     unloaded : {},
     loaded : {
       enter : function(id) {
@@ -107,7 +107,7 @@ The `enter` and `exit` handlers can also be used to control whether it's possibl
 var app = new Miso.Scene({
   initial : 'unloaded',
   scenes : {
-    unloaded : {
+    children : {
       exit : function() {
         var done = this.async();
 
@@ -144,7 +144,7 @@ You can pass additional methods to the definitions of both scenes and engines to
 ```javascript
 var app = new Miso.Scene({
   initial : 'unloaded',
-  scenes : {
+  children : {
     unloaded : {
       loadData : function() { ... },
       displayLoadingScreen : function() { ... },
@@ -173,7 +173,7 @@ var loadedScene = new Miso.Scene({
 
 var app = new Miso.Scene({
   inital 'unloaded',
-  scenes : {
+  children : {
     unloaded : {},
     loaded : loadedScene
   }
@@ -187,7 +187,7 @@ It is also possible to nest Miso Scenes inside each other, making it possible to
 ```javscript
 var walkthrough = new Miso.Scene({
   initial : 'one',
-  scenes : {
+  children : {
     enter : {}
     one : {},
     two : {},
@@ -198,7 +198,7 @@ var walkthrough = new Miso.Scene({
 
 var app = new Miso.Scene({
   inital 'unloaded',
-  scenes : {
+  children : {
     unloaded : {},
     walkthrough : loadedScene
   }
