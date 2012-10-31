@@ -1,11 +1,11 @@
 
 
-module("Scene Event Integration");
+module("Storyboard Event Integration");
 
 test("Basic transition events", 8, function() {
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {},
       loaded : {
         exit : function() {

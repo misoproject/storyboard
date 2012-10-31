@@ -2,9 +2,9 @@ module("Asynchronous tests");
 
 test("Asynchronous enter", function() {
   var done;
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {},
       loaded : {
         enter : function() {
@@ -26,9 +26,9 @@ test("Asynchronous enter", function() {
 
 test("Cancelling a transition in progress", 4, function() {
   var done;
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {
         exit : function() {
           done = this.async();
@@ -56,9 +56,9 @@ test("Cancelling a transition in progress", 4, function() {
 
 test("async handlers are executed in the correct order", 1, function() {
   var order = [];
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {
         exit: function() {
           var done = this.async();
@@ -88,9 +88,9 @@ test("async handlers are executed in the correct order", 1, function() {
 
 test("async fail on enter stops transition", 4, function() {
   var pass;
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {},
       loaded : {
         enter : function() {
@@ -114,9 +114,9 @@ test("async fail on enter stops transition", 4, function() {
 
 test("async fail on exit stops transition", 4, function() {
   var pass;
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {
         exit : function() {
           pass = this.async();
@@ -139,9 +139,9 @@ test("async fail on exit stops transition", 4, function() {
 });
 
 test("passing a custom deferred to to", 1, function() {
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {},
       loaded : {}
     }

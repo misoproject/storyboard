@@ -3,50 +3,50 @@
   var Miso = global.Miso = (global.Miso || {});
   var Util = Miso.Util;
 
-  var Scene = Miso.Scene = function( config ) {
+  var Storyboard = Miso.Storyboard = function( config ) {
     config = config || {};
     this._context = config.context || this;
     this._id = _.uniqueId('scene');
 
-    if ( config.children ) { //has child scenes
-      this._buildChildren( config.children );
+    if ( config.scenes ) { //has child scenes
+      this._buildScenes( config.scenes );
       this._initial = config.initial;
       this.to = children_to;
 
     } else { //leaf scene
 
       this.handlers = {};
-      _.each(Scene.HANDLERS, function(action) {
+      _.each(Storyboard.HANDLERS, function(action) {
         
         config[action] = config[action] || function() { return true; };
         
         //wrap functions so they can declare themselves as optionally
         //asynchronous without having to worry about deferred management.
-        this.handlers[action] = Util._wrap(config[action], action);
+        this.handlers[action] = wrap(config[action], action);
       
       }, this);
       this.to = leaf_to;
     }
 
     _.each(config, function(prop, name) {
-      if (_.indexOf(Scene.BLACKLIST, name) !== -1) { return; }
+      if (_.indexOf(Storyboard.BLACKLIST, name) !== -1) { return; }
       this[name] = prop;
     }, this);
 
   };
 
-  Scene.HANDLERS = ['enter','exit'];
-  Scene.BLACKLIST = ['initial','children','enter','exit','context'];
+  Storyboard.HANDLERS = ['enter','exit'];
+  Storyboard.BLACKLIST = ['initial','scenes','enter','exit','context'];
 
-  _.extend(Scene.prototype, Miso.Events, {
+  _.extend(Storyboard.prototype, Miso.Events, {
     attach : function(name, parent) {
       this.name = name;
       this.parent = parent;
       //if the parent has a custom context the child should inherit it
       if (parent._context && (parent._context._id !== parent._id)) {
         this._context = parent._context;
-        if (this.children) {
-          _.each(this.children, function(scene, name) {
+        if (this.scenes) {
+          _.each(this.scenes , function(scene, name) {
             scene.attach(scene.name, this);
           }, this);
         }
@@ -79,11 +79,11 @@
       return (this._transitioning === true);
     },
 
-    _buildChildren: function( scenes ) {
-      this.children = {};
+    _buildScenes : function( scenes ) {
+      this.scenes = {};
       _.each(scenes, function(scene, name) {
-        this.children[name] = scene instanceof Miso.Scene ? scene : new Miso.Scene(scene);
-        this.children[name].attach(name, this);
+        this.scenes[name] = scene instanceof Miso.Storyboard ? scene : new Miso.Storyboard(scene);
+        this.scenes[name].attach(name, this);
       }, this);
     }
   });
@@ -110,7 +110,7 @@
   }
 
   function children_to( sceneName, argsArr, deferred ) {
-    var toScene = this.children[sceneName],
+    var toScene = this.scenes[sceneName],
         fromScene = this._current,
         args = argsArr ? argsArr : [],
         complete = this._complete = deferred || _.Deferred(),
@@ -166,6 +166,41 @@
 
     return complete.promise();
   }
+
+  function wrap(func, name) {
+    
+    //don't wrap non-functions
+    if ( !_.isFunction(func)) { return func; }
+    //don't wrap private functions
+    if ( /^_/.test(name) ) { return func; }
+    //don't wrap wrapped functions
+    if (func.__wrapped) { return func; }
+
+    var wrappedFunc = function(args, deferred) {
+      var async = false,
+          result;
+
+          deferred = deferred || _.Deferred();
+          
+          this.async = function() {
+            async = true;
+            return function(pass) {
+              return (pass !== false) ? deferred.resolve() : deferred.reject();
+            };
+          };
+
+      result = func.apply(this, args);
+      this.async = undefined;
+      if (!async) {
+        return (result !== false) ? deferred.resolve() : deferred.reject();
+      }
+      return deferred.promise();
+    };
+
+    wrappedFunc.__wrapped = true;
+    return wrappedFunc;
+  };
+
 
 
 }(this, _));

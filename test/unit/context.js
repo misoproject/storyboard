@@ -2,7 +2,7 @@ module("Context and arguments");
 
 test("extending a scene with additional methods", function() {
   var done = false;
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     boom : function() {
       done = true;
     },
@@ -16,9 +16,9 @@ test("extending a scene with additional methods", function() {
 });
 
 test("handlers have access arguments passed to transition", 4, function() {
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {
         exit : function(a, b) {
           equals(a, 44);
@@ -46,10 +46,10 @@ test("Applying a context to a simple scene", function() {
     b : 96
   };
 
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     context : context,
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {
         enter : function() {
           equals(this.a, true);
@@ -73,10 +73,10 @@ test("applying a context to nested rigs", 4, function() {
     b : 96
   };
 
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     context : context,
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {
         enter : function() {
           equals(this.a, true);

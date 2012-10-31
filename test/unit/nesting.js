@@ -1,18 +1,18 @@
 module("Building complex scenes");
 
 test("scenes names get set when they're attached", function() {
-  var myScene = new Miso.Scene({});
-  var app = new Miso.Scene({
+  var myStoryboard = new Miso.Storyboard({});
+  var app = new Miso.Storyboard({
     initial : 'base',
-    children : { base : myScene }
+    scenes : { base : myStoryboard }
   });
 
-  equals(app.children['base'].name, 'base');
+  equals(app.scenes['base'].name, 'base');
 });
 
 test("predefining scenes", function() {
   var order = [];
-  var sceneA = new Miso.Scene({
+  var sceneA = new Miso.Storyboard({
     enter : function() {
       order.push('a');
     }, 
@@ -21,15 +21,15 @@ test("predefining scenes", function() {
     }
   });
 
-  var sceneB = new Miso.Scene({
+  var sceneB = new Miso.Storyboard({
     enter : function() {
       order.push('c');
     }
   });
 
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : sceneA,
       loaded : sceneB
     }
@@ -43,8 +43,8 @@ test("predefining scenes", function() {
 
 test("Using as engine as a scene", function() {
   var order = [];
-  var subScene = new Miso.Scene({
-    children : {
+  var subStoryboard = new Miso.Storyboard({
+    scenes : {
       enter : {
         enter : function() {
           order.push('a');
@@ -63,10 +63,10 @@ test("Using as engine as a scene", function() {
     initial : 'enter'
   });
 
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
-      unloaded : subScene,
+    scenes : {
+      unloaded : subStoryboard,
       loaded : {
         enter : function() {
           order.push('d');
@@ -86,9 +86,9 @@ test("Using as engine as a scene", function() {
 test("Nesting 3 engines inside each other", function() {
   var order = [];
 
-  var inner = new Miso.Scene({
+  var inner = new Miso.Storyboard({
     initial : 'enter',
-    children : {
+    scenes : {
       enter : {
         enter : function() {
           order.push('c');
@@ -98,9 +98,9 @@ test("Nesting 3 engines inside each other", function() {
     defer : true
   });
 
-  var outer = new Miso.Scene({
+  var outer = new Miso.Storyboard({
     initial : 'enter',
-    children : {
+    scenes : {
       enter : {
         enter : function() {
           order.push('b');
@@ -111,9 +111,9 @@ test("Nesting 3 engines inside each other", function() {
     defer : true
   });
 
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'a',
-    children : {
+    scenes : {
       a : {
         enter : function() {
           order.push('a');
@@ -137,10 +137,10 @@ test("applying a context to nested rigs", 6, function() {
     b : 96
   };
 
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     context : context,
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {
         enter : function() {
           equals(this.a, true);
@@ -152,9 +152,9 @@ test("applying a context to nested rigs", 6, function() {
         }
       },
 
-      loaded : new Miso.Scene({
+      loaded : new Miso.Storyboard({
         initial : 'enter',
-        children : {
+        scenes : {
 
           enter : {
             enter : function() {

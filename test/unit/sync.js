@@ -1,9 +1,9 @@
 module("Synchronous Tests");
 
 test("Changing synchronous states", function() {
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {},
       loaded : {}
     }
@@ -19,9 +19,9 @@ test("Changing synchronous states", function() {
 });
 
 test("Changing between multiple synchronous states", function() {
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {},
       loaded : {},
       drilldown : {}
@@ -40,9 +40,9 @@ test("Changing between multiple synchronous states", function() {
  });
 
 test("returning false on enter stops transition", 2, function() {
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {},
       loaded : {
         enter : function() {
@@ -62,9 +62,9 @@ test("returning false on enter stops transition", 2, function() {
 });
 
 test("returning undefined on enter or exit does not cause a failure", 2, function() {
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       unloaded : {
         exit : function() {}
       },
@@ -84,9 +84,9 @@ test("returning undefined on enter or exit does not cause a failure", 2, functio
 });
 
 test("returning false on exit stops transition", 2, function() {
-  var app = new Miso.Scene({
+  var app = new Miso.Storyboard({
     initial : 'unloaded',
-    children : {
+    scenes : {
       loaded : {},
       unloaded : {
         exit : function() {
