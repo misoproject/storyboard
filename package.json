@@ -1,31 +1,31 @@
 {
-  "name" : "miso.scene",
-  "title" : "Miso.Scene",
-  "description" : "Scene is a state management library that makes orchestrating the flows of your application easy using scenes.",
+  "name" : "miso.storyboard",
+  "title" : "Miso.Storyboard",
+  "description" : "Storyboard is a state management library that makes orchestrating the flows of your application easy using storyboards.",
   "version" : "0.0.1",
-  "homepage" : "http://github.com/misoproject/scene",
+  "homepage" : "http://github.com/misoproject/storyboard",
   "authors" : "Alex Graul, Irene Ros, Rich Harris",
 
   "bugs" : {
-    "url" : "http://github.com/misoproject/scene/issues"
+    "url" : "http://github.com/misoproject/storyboard/issues"
   },
 
   "licenses" : [
     {
       "type" : "MIT",
-      "url" : "http://github.com/misoproject/scene/blob/master/LICENSE-MIT"
+      "url" : "http://github.com/misoproject/storyboard/blob/master/LICENSE-MIT"
     },
     {
       "type" : "GPL",
-      "url" : "http://github.com/misoproject/scene/blob/master/LICENSE-GPL"
+      "url" : "http://github.com/misoproject/storyboard/blob/master/LICENSE-GPL"
     }
   ],
 
-  "main": "dist/node/miso.scene.deps.0.0.1",
+  "main": "dist/node/miso.storyboard.deps.0.0.1",
 
   "repository": {
     "type": "git",
-    "url": "git@github.com:misoproject/scene.git"
+    "url": "git@github.com:misoproject/storyboard.git"
   },
 
   "keywords" : [ "state", "state management" ],

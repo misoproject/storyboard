@@ -199,7 +199,7 @@
 
     wrappedFunc.__wrapped = true;
     return wrappedFunc;
-  };
+  }
 
 
 

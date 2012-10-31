@@ -10,43 +10,42 @@ module.exports = function(grunt) {
                 '* <%= pkg.homepage %>\n' +
                 '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.authors %>;\n' +
                 '* Dual Licensed: <%= _.pluck(pkg.licenses, "type").join(", ") %>\n' +
-                '* https://github.com/misoproject/scene/blob/master/LICENSE-MIT \n' +
+                '* https://github.com/misoproject/storyboard/blob/master/LICENSE-MIT \n' +
                 '*/',
       lastbuild : '<%= grunt.template.today("yyyy/mm/dd hh:ss") %>'
     },
 
     node: {
       wrapper: "src/node/compat.js",
-      misoScene: "dist/miso.scene.<%= pkg.version %>.js"
+      misoScene: "dist/miso.storyboard.<%= pkg.version %>.js"
     },
 
     concat : {
       fullnodeps: {
-        dest: "dist/miso.scene.<%= pkg.version %>.js",
+        dest: "dist/miso.storyboard.<%= pkg.version %>.js",
         src: [
           "<banner>",
           "src/events.js",
-          "src/util.js",
-          "src/scene.js"
+          "src/storyboard.js"
         ]
       },
 
       requirenodeps: {
-        dest: "dist/miso.scene.r.<%= pkg.version %>.js",
+        dest: "dist/miso.storyboard.r.<%= pkg.version %>.js",
         src: [
           "<banner>",
-          "dist/miso.scene.<%= pkg.version %>.js",
+          "dist/miso.storyboard.<%= pkg.version %>.js",
           "src/require.js"
         ]
       },
 
       fulldeps: {
-        dest : "dist/miso.scene.deps.<%= pkg.version %>.js",
+        dest : "dist/miso.storyboard.deps.<%= pkg.version %>.js",
         src : [
           "<banner>",
           "libs/lodash.js",
           "libs/underscore.deferred.js",
-          "dist/miso.scene.<%= pkg.version %>.js"
+          "dist/miso.storyboard.<%= pkg.version %>.js"
         ]
       },
 
@@ -60,17 +59,17 @@ module.exports = function(grunt) {
 
     min : {
       minnodeps : {
-        dest : "dist/miso.scene.min.<%= pkg.version %>.js",
+        dest : "dist/miso.storyboard.min.<%= pkg.version %>.js",
         src : [
           "<banner>",
-          "dist/miso.scene.<%= pkg.version %>.js" 
+          "dist/miso.storyboard.<%= pkg.version %>.js" 
         ]
       },
       mindeps : {
-        dest : "dist/miso.scene.deps.min.<%= pkg.version %>.js",
+        dest : "dist/miso.storyboard.deps.min.<%= pkg.version %>.js",
         src : [
           "<banner>",
-          "dist/miso.scene.deps.<%= pkg.version %>.js" 
+          "dist/miso.storyboard.deps.<%= pkg.version %>.js" 
         ]
       }
     },
