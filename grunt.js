@@ -95,8 +95,7 @@ module.exports = function(grunt) {
 
     jshint : {
       options : {
-        unused : true,
-        unuseds : true,
+        unused : false,
         devel : true,
         noempty : true,
         forin : false,

@@ -1,11 +1,14 @@
-# Miso.Scene #
+# Miso.Storyboard #
 
-Miso.Scene is a framework for organising your interactive content as scenes, making it easy to handle complex transitions and manage state. Each scene can have handlers for how it should act when it becomes the active scene and when it is no longer the active scene. Scenes nest, so your top level scene will have children that represent that states of your application or interactive.
+Miso.Storyboard is a control flow library for organising your interactive content as scenes, making it easy to 
+handle complex transitions and manage state. Each scene can have handlers for how it should act 
+when it becomes the active scene and when it is no longer the active scene. Storyboards nest, 
+in that every single scene can actually be its own complex storyboard.
 
 ```javascript
- var app = new Miso.Scene({
+ var app = new Miso.Storyboard({
   initial : 'unloaded',
-  children : {
+  scenes : {
     'unloaded' : {
       exit : function() {
         console.log('exiting of unloaded complete');
@@ -26,12 +29,16 @@ app.to('loaded');
 ## Handling Asynchronous transitions ##
 
 Every scene has two handlers `enter` and `exit`, which are called when the
-scene is entered and exited respectively. Both of these handlers can be made to be asynchronous, making it possible to use them to handle complex animated transions in a relatively simple manner. Handlers are made asynchronous by calling a `this.async` in the handler. This will return a function when can be called when the final callback is complete, this is called the resolution function. The `to` function will in turn then return a deferred that will not resolve (or reject) until all the handlers involved are complete.
+scene is entered and exited respectively. Both of these handlers can be made to be asynchronous, making 
+it possible to use them to handle complex animated transions in a relatively simple manner. Handlers 
+are made asynchronous by calling a `this.async` in the handler. This will return a function when can 
+be called when the final callback is complete, this is called the resolution function. The `to` function 
+will in turn then return a deferred that will not resolve (or reject) until all the handlers involved are complete.
 
 ```javascript
-var app = new Miso.Scene({
+var app = new Miso.Storyboard({
   initial : 'unloaded',
-  children : {
+  scenes : {
     'unloaded' : {
       exit : function() {
         var done = this.async();
@@ -60,9 +67,9 @@ loadingComplete.done(function() {
 
 
 ```javascript
-var app = new Miso.Scene({
+var app = new Miso.Storyboard({
   initial : 'unloaded',
-  children : {
+  scenes : {
     unloaded : {},
     loaded : {}
   }
@@ -75,12 +82,13 @@ complete.done(function() {
 });
 ```
 
-It is also possible to pass in your own deferred to the `to` method, along with an array of arguments that will be passed to the `exit` and `enter` handlers.
+It is also possible to pass in your own deferred to the `to` method, along 
+with an array of arguments that will be passed to the `exit` and `enter` handlers.
 
 ```javascript
-var app = new Miso.Scene({
+var app = new Miso.Storyboard({
   initial : 'unloaded',
-  children : {
+  scenes : {
     unloaded : {},
     loaded : {
       enter : function(id) {
@@ -101,25 +109,29 @@ app.to('overview', [userID], complete);
 
 ## Conditional movement between scenes ##
 
-The `enter` and `exit` handlers can also be used to control whether it's possible to move between scenes. If a handler returns false, or if it is asynchronous, passes `false` to its resolution function the transition will be rejected. This can be managed inside handlers or by binding functions to the `fail` method of the deferred returned by `to`.
+The `enter` and `exit` handlers can also be used to control whether it's possible to move between scenes. 
+If a handler returns false, or if it is asynchronous, passes `false` to its resolution function the 
+transition will be rejected. This can be managed inside handlers or by binding functions to the `fail` 
+method of the deferred returned by `to`.
 
 ```javascript
-var app = new Miso.Scene({
+var app = new Miso.Storyboard({
   initial : 'unloaded',
   scenes : {
-    children : {
+    unloaded : {
       exit : function() {
         var done = this.async();
 
         data.remoteFetch({
           error : function() {
+            // data fetch failed? don't continue transitioning.
             done(false)
           },
           success : function() {
+            // data fetch succeeded, continue transitioning.
             done();
           }
         });
-
       }
     },
     loaded : {
@@ -139,12 +151,13 @@ complete.fail(function() {
 
 ## Organising your code ##
 
-You can pass additional methods to the definitions of both scenes and engines to help structure your code in a more logical manner and break down big functions.
+You can pass additional methods to the definitions scenes in your storyboard
+to help structure your code in a more logical manner and break down big functions.
 
 ```javascript
-var app = new Miso.Scene({
+var app = new Miso.Storyboard({
   initial : 'unloaded',
-  children : {
+  scenes : {
     unloaded : {
       loadData : function() { ... },
       displayLoadingScreen : function() { ... },
@@ -159,40 +172,20 @@ var app = new Miso.Scene({
 app.start();
 ```
 
-You can also define Scenes separately and then pass them in to an engine:
+## Nesting Storyboards ##
 
-```javascript
-var loadedScene = new Miso.Scene({
-  loadData : function() { ... },
-  displayLoadingScreen : function() { ... },
-  enter : function() {
-    this.displayLoadingScreen();
-    this.loadData();
-  }
-});
-
-var app = new Miso.Scene({
-  inital 'unloaded',
-  children : {
-    unloaded : {},
-    loaded : loadedScene
-  }
-});
-```
-
-## Nesting Scenes ##
-
-It is also possible to nest Miso Scenes inside each other, making it possible to control state at each level of your code. For example if you had a slideshow inside a larger scene, it could in turn be an engine, with each slide being a state, with handlers defining each move between slides in a custom manner. Nested Scenes must define an `enter` and `exit` scene, which will be called when the `enter` and `exit` scnes would be run in a normal `Miso.Scene`. This will be done automatically in a future version.
+It is also possible to nest Miso Storyboards inside each other, making it possible 
+to control state at each level of your code. For example if you had a slideshow inside 
+a larger storyboard, it could in turn be its own storyboard, with each slide being a scene, with handlers 
+defining each move between slides in a custom manner. 
 
 ```javscript
 var walkthrough = new Miso.Scene({
   initial : 'one',
   children : {
-    enter : {}
     one : {},
     two : {},
     three : {}
-    exit : {}
   }
 });
 
@@ -211,7 +204,7 @@ To build Scene you'll need npm, node.js's package management system and grunt
 
 `npm install`
 
-To build Miso.Scene, call
+To build Miso.Storyboard, call
 
 `grunt`
 
