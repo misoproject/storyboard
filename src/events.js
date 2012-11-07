@@ -23,6 +23,7 @@
 
       if (this._events && this._events[name]) {
         _.each(this._events[name], function(subscription) {
+          console.log("firing event", name);
           subscription.callback.apply(subscription.context || this, args);
         }, this);
       }  

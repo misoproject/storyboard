@@ -66,6 +66,58 @@ test("Applying a context to a simple scene", function() {
 
 });
 
+test("Applying a context to a simple scene and then switching it", function() {
+  stop();
+  var context1 = {
+    a : true,
+    b : 96
+  };
+
+  var context2 = {
+    a : false,
+    b : 1
+  };
+
+  var app = new Miso.Storyboard({
+    context : context1,
+    initial : 'c1',
+    scenes : {
+      c1 : {
+        enter : function() {
+          equals(this.a, true);
+          equals(this.b, 96);
+        },
+        exit : function() {
+          equals(this.a, true);
+          equals(this.b, 96);
+        }
+      },
+      c2 : {
+        enter : function() {
+          equals(this.a, false);
+          equals(this.b, 1);
+        },
+        exit : function() {
+          equals(this.a, false);
+          equals(this.b, 1);
+          start();
+        }
+      },
+      end : {}
+    }
+  });
+
+  app.subscribe('c1:done', function() {
+    app.setContext(context2);
+  });
+
+  app.start().then(function() {
+    app.to('c2').then(function() {
+      app.to('end');
+    });
+  });
+
+});
 
 test("applying a context to nested rigs", 4, function() {
   var context = {

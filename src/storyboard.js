@@ -50,7 +50,8 @@
         // wrap functions so they can declare themselves as optionally
         // asynchronous without having to worry about deferred management.
         // this exposes the this.async function.
-        this.handlers[action] = wrap(options[action], action);
+        // this.handlers[action] = wrap(options[action], action);
+        this.handlers[action] = options[action];
       
       }, this);
 
@@ -154,6 +155,14 @@
       return (this._transitioning === true);
     },
 
+    setContext : function(context) {
+      this._context = context;
+      if (this.scenes) {
+        _.each(this.scenes, function(scene) {
+          scene.setContext(context);
+        });
+      }
+    },
     
     _buildScenes : function( scenes ) {
       this.scenes = {};
@@ -167,6 +176,7 @@
   // Used as the to function to scenes which do not have children
   // These scenes only have their own enter and exit.
   function leaf_to( sceneName, argsArr, deferred ) {
+    
     this._transitioning = true;
     var complete = this._complete = deferred || _.Deferred(),
     args = argsArr ? argsArr : [],
@@ -181,7 +191,8 @@
         complete.reject();
       }, this));
 
-    this.handlers[sceneName].call(this._context, args, handlerComplete);
+    console.log("to", sceneName, this.name);
+    wrap(this.handlers[sceneName], sceneName).call(this._context, args, handlerComplete);
 
     return complete.promise();
   }
@@ -195,18 +206,20 @@
         exitComplete = _.Deferred(),
         enterComplete = _.Deferred(),
         publish = _.bind(function(name) {
+          console.log("publish", (fromScene ? fromScene.name : null) + ":" + name);
+          this.publish((fromScene ? fromScene.name : null) + ":" + name);
           this.publish(name, (fromScene ? fromScene.name : null), toScene.name);
         }, this),
         bailout = _.bind(function() {
           this._transitioning = false;
-          complete.reject();
           publish('fail');
+          complete.reject();
         }, this),
         success = _.bind(function() {
           this._transitioning = false;
           this._current = toScene;
-          complete.resolve();
           publish('done');
+          complete.resolve();
         }, this);
 
     // Can't fire a transition that isn't defined
@@ -241,7 +254,7 @@
       .fail(bailout);
     }
 
-    //all events done, let's tidy up
+    // all events done, let's tidy up
     _.when(exitComplete, enterComplete).then(success);
 
     return complete.promise();
