@@ -1,4 +1,4 @@
-/*global config:true, task:true*/
+/* global config:true, task:true */
 module.exports = function(grunt) {
 
   grunt.initConfig({
@@ -82,7 +82,6 @@ module.exports = function(grunt) {
 
     lint : {
       files : [
-        "grunt.js",
         "src/*.js",
         "test/unit/**/*.js"
       ]
@@ -96,7 +95,6 @@ module.exports = function(grunt) {
     jshint : {
       options : {
         unused : true,
-        unuseds : true,
         devel : true,
         noempty : true,
         forin : false,
