@@ -191,13 +191,12 @@
         complete.reject();
       }, this));
 
-    console.log("to", sceneName, this.name);
     wrap(this.handlers[sceneName], sceneName).call(this._context, args, handlerComplete);
 
     return complete.promise();
   }
 
-  // Used as the function to scenes that do have children.
+    // Used as the function to scenes that do have children.
   function children_to( sceneName, argsArr, deferred ) {
     var toScene = this.scenes[sceneName],
         fromScene = this._current,
@@ -206,19 +205,24 @@
         exitComplete = _.Deferred(),
         enterComplete = _.Deferred(),
         publish = _.bind(function(name) {
-          console.log("publish", (fromScene ? fromScene.name : null) + ":" + name);
-          this.publish((fromScene ? fromScene.name : null) + ":" + name);
-          this.publish(name, (fromScene ? fromScene.name : null), toScene.name);
+          var scene = toScene;
+          if (name === 'done') {
+            scene = fromScene;
+          }
+          if (scene) {
+            this.publish((scene ? scene.name : null) + ":" + name);
+            this.publish(name, (scene ? scene.name : null), toScene.name);
+          }
         }, this),
         bailout = _.bind(function() {
           this._transitioning = false;
+          this._current = fromScene;
           publish('fail');
           complete.reject();
         }, this),
         success = _.bind(function() {
           this._transitioning = false;
           this._current = toScene;
-          publish('done');
           complete.resolve();
         }, this);
 
@@ -227,8 +231,6 @@
       throw "Scene '" + sceneName + "' not found!";
     }
 
-    publish('start');
-
     // we in the middle of a transition?
     if (this._transitioning) { 
       return complete.reject();
@@ -236,26 +238,32 @@
 
     this._transitioning = true;
 
-    // initial event so there's no from scene
-    if (!fromScene) {
-      
-      exitComplete.resolve();
-      toScene.to('enter', args, enterComplete)
-      .fail(bailout);
-    
+    if (fromScene) {
+
+      // we are coming from a scene, so transition out of it.
+      fromScene.to('exit', args, exitComplete);
+
     } else {
-      
-      //run before and after in order
-      //if either fail, run the bailout
-      fromScene.to('exit', args, exitComplete)
-      .done(function() {
-        toScene.to('enter', args, enterComplete).fail(bailout);
-      })
-      .fail(bailout);
+      exitComplete.resolve();
     }
 
-    // all events done, let's tidy up
-    _.when(exitComplete, enterComplete).then(success);
+    // when we're done exiting, enter the next set
+    _.when(exitComplete).then(function() {
+
+      // mark the previous transition complete by firing off
+      // done.
+      publish('done');
+
+      // transition toScene's enter
+      toScene.to('enter', args, enterComplete);
+
+    }).fail(bailout);
+
+    enterComplete.then(function(){
+      publish('start');
+    })
+    .then(success)
+    .fail(bailout);
 
     return complete.promise();
   }
