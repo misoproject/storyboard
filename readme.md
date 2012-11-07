@@ -182,7 +182,7 @@ defining each move between slides in a custom manner.
 ```javscript
 var walkthrough = new Miso.Scene({
   initial : 'one',
-  children : {
+  scenes : {
     one : {},
     two : {},
     three : {}
@@ -191,7 +191,7 @@ var walkthrough = new Miso.Scene({
 
 var app = new Miso.Scene({
   inital 'unloaded',
-  children : {
+  scenes : {
     unloaded : {},
     walkthrough : loadedScene
   }
