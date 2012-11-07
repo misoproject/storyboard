@@ -1,35 +1,73 @@
 (function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
-  var Util = Miso.Util;
 
-  var Storyboard = Miso.Storyboard = function( config ) {
-    config = config || {};
-    this._context = config.context || this;
+  /**
+  * Creates a new storyboard.
+  * Params:
+  *   options - various arguments
+  *     context - optional. Set a different context for the storyboard.
+  *               by default it's the scene that is being executed.
+  *     
+  */ 
+  var Storyboard = Miso.Storyboard = function(options) {
+
+    options = options || {};
+    
+    // Set up the context for this storyboard. This will be
+    // available as 'this' inside the transition functions.
+    this._context = options.context || this;
+
+    // Assign custom id to the storyboard.
     this._id = _.uniqueId('scene');
 
-    if ( config.scenes ) { //has child scenes
-      this._buildScenes( config.scenes );
-      this._initial = config.initial;
+    // If there are scenes defined, initialize them.
+    if (options.scenes) { 
+
+      // Convert the scenes to actually nested storyboards. A 'scene'
+      // is really just a storyboard of one action with no child scenes.
+      this._buildScenes(options.scenes);
+
+      // Save the initial scene that we will start from. When .start is called
+      // on the storyboard, this is the scene we transition to.
+      this._initial = options.initial;
+
+      // Transition function given that there are child scenes.
       this.to = children_to;
 
-    } else { //leaf scene
+    } else { 
+
+      // This is a terminal storyboad in that it doesn't actually have any child
+      // scenes, just its own enter and exit functions.
 
       this.handlers = {};
+
       _.each(Storyboard.HANDLERS, function(action) {
         
-        config[action] = config[action] || function() { return true; };
+        // save the enter and exit functions and if they don't exist, define them.
+        options[action] = options[action] || function() { return true; };
         
-        //wrap functions so they can declare themselves as optionally
-        //asynchronous without having to worry about deferred management.
-        this.handlers[action] = wrap(config[action], action);
+        // wrap functions so they can declare themselves as optionally
+        // asynchronous without having to worry about deferred management.
+        // this exposes the this.async function.
+        this.handlers[action] = wrap(options[action], action);
       
       }, this);
+
+      // Transition function given that this is a terminal storyboard.
       this.to = leaf_to;
     }
 
-    _.each(config, function(prop, name) {
-      if (_.indexOf(Storyboard.BLACKLIST, name) !== -1) { return; }
+
+    // Iterate over all the properties defiend in the options and as long as they 
+    // are not on a black list, save them on the actual scene. This allows us to define
+    // helper methods that are not going to be wrapped (and thus instrumented with 
+    // any deferred and async behavior.)
+    _.each(options, function(prop, name) {
+      
+      if (_.indexOf(Storyboard.BLACKLIST, name) !== -1) { 
+        return; 
+      }
       this[name] = prop;
     }, this);
 
@@ -39,22 +77,39 @@
   Storyboard.BLACKLIST = ['initial','scenes','enter','exit','context'];
 
   _.extend(Storyboard.prototype, Miso.Events, {
+    
+    /**
+    * Attach a new scene to an existing storyboard.
+    * Params:
+    *   name - The name of the scene
+    *   parent - The storyboard to attach this current scene to.
+    */
     attach : function(name, parent) {
+      
       this.name = name;
       this.parent = parent;
-      //if the parent has a custom context the child should inherit it
+      
+      // if the parent has a custom context the child should inherit it
       if (parent._context && (parent._context._id !== parent._id)) {
+        
         this._context = parent._context;
         if (this.scenes) {
-          _.each(this.scenes , function(scene, name) {
+          _.each(this.scenes , function(scene) {
             scene.attach(scene.name, this);
           }, this);
         }
       }
+      return this;
     },
 
+    /**
+    * Instruct a storyboard to kick off its initial scene.
+    * This returns a deferred object just like all the .to calls.
+    * If the initial scene is asynchronous, you will need to define a .then
+    * callback to wait on the start scene to end its enter transition.
+    */
     start : function() {
-      //if we've already started just return a happily resoved deferred
+      // if we've already started just return a happily resoved deferred
       if (typeof this._current !== "undefined") {
         return _.Deferred().resolve();
       } else {
@@ -62,23 +117,44 @@
       }
     },
 
+    /**
+    * Cancels a transition in action. This doesn't actually kill the function
+    * that is currently in play! It does reject the deferred one was awaiting
+    * from that transition.
+    */
     cancelTransition : function() {
       this._complete.reject();
       this._transitioning = false;
     },
 
+    /**
+    * Returns the current scene.
+    * Returns:
+    *   scene - current scene name, or null.
+    */
     scene : function() {
       return this._current ? this._current.name : null;
     },
 
+    /**
+    * Checks if the current scene is of a specific name.
+    * Params:
+    *   scene - scene to check as to whether it is the current scene
+    * Returns:
+    *   true if it is, false otherwise.
+    */
     is : function( scene ) {
       return (scene === this._current.name);
     },
 
+    /**
+    * Returns true if storyboard is in the middle of a transition.
+    */
     inTransition : function() {
       return (this._transitioning === true);
     },
 
+    
     _buildScenes : function( scenes ) {
       this.scenes = {};
       _.each(scenes, function(scene, name) {
@@ -88,7 +164,8 @@
     }
   });
 
-  //Used as the to function to scenes which do not have children
+  // Used as the to function to scenes which do not have children
+  // These scenes only have their own enter and exit.
   function leaf_to( sceneName, argsArr, deferred ) {
     this._transitioning = true;
     var complete = this._complete = deferred || _.Deferred(),
@@ -109,6 +186,7 @@
     return complete.promise();
   }
 
+  // Used as the function to scenes that do have children.
   function children_to( sceneName, argsArr, deferred ) {
     var toScene = this.scenes[sceneName],
         fromScene = this._current,
@@ -131,27 +209,29 @@
           publish('done');
         }, this);
 
-    //Can't fire a transition that isn't defined
+    // Can't fire a transition that isn't defined
     if (!toScene) {
       throw "Scene '" + sceneName + "' not found!";
     }
 
     publish('start');
 
-    //we in the middle of a transition?
+    // we in the middle of a transition?
     if (this._transitioning) { 
       return complete.reject();
     }
 
     this._transitioning = true;
 
-      
-    //initial event so there's no from scene
+    // initial event so there's no from scene
     if (!fromScene) {
+      
       exitComplete.resolve();
       toScene.to('enter', args, enterComplete)
       .fail(bailout);
+    
     } else {
+      
       //run before and after in order
       //if either fail, run the bailout
       fromScene.to('exit', args, exitComplete)
