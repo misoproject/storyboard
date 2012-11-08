@@ -87,7 +87,6 @@ test("Cloning deeply", function() {
       a : new Miso.Storyboard({
         enter : function() {
           this.counter = 0;
-          console.log('a', this._id);
         },
         exit : function() {
           this.helper();
@@ -117,7 +116,6 @@ test("Cloning deeply", function() {
     },
     
     helper : function() {
-      console.log('parent.helper', this._id, this.counter);
       this.counter += 10;
     }
   });
