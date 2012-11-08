@@ -1,5 +1,5 @@
 /**
-* Miso.Storyboard - v0.0.1 - 11/7/2012
+* Miso.Storyboard - v0.0.1 - 11/8/2012
 * http://github.com/misoproject/storyboard
 * Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
@@ -131,6 +131,9 @@
 
     options = options || {};
     
+    // save all options so we can clone this later...
+    this._originalOptions = options;
+
     // Set up the context for this storyboard. This will be
     // available as 'this' inside the transition functions.
     this._context = options.context || this;
@@ -166,9 +169,7 @@
         
         // wrap functions so they can declare themselves as optionally
         // asynchronous without having to worry about deferred management.
-        // this exposes the this.async function.
-        // this.handlers[action] = wrap(options[action], action);
-        this.handlers[action] = options[action];
+        this.handlers[action] = wrap(options[action], action);
       
       }, this);
 
@@ -192,10 +193,29 @@
   };
 
   Storyboard.HANDLERS = ['enter','exit'];
-  Storyboard.BLACKLIST = ['initial','scenes','enter','exit','context'];
+  Storyboard.BLACKLIST = ['_id', 'initial','scenes','enter','exit','context','_current'];
 
   _.extend(Storyboard.prototype, Miso.Events, {
     
+    /**
+    * Allows for cloning of a storyboard
+    * Returns:
+    *   s - a new Miso.Storyboard
+    */
+    clone : function() {
+
+      // clone nested storyboard
+      if (this.scenes) {
+        _.each(this._originalOptions.scenes, function(scene, name) {
+          if (scene instanceof Miso.Storyboard) {
+            this._originalOptions.scenes[name] = scene.clone();
+          }
+        }, this);
+      }
+
+      return new Miso.Storyboard(this._originalOptions);
+    },
+
     /**
     * Attach a new scene to an existing storyboard.
     * Params:
@@ -272,6 +292,10 @@
       return (this._transitioning === true);
     },
 
+    /**
+    * Allows the changing of context. This will alter what 'this'
+    * will be set to inside the transition methods.
+    */
     setContext : function(context) {
       this._context = context;
       if (this.scenes) {
@@ -308,7 +332,7 @@
         complete.reject();
       }, this));
 
-    wrap(this.handlers[sceneName], sceneName).call(this._context, args, handlerComplete);
+    this.handlers[sceneName].call(this._context, args, handlerComplete);
 
     return complete.promise();
   }
@@ -321,15 +345,13 @@
         complete = this._complete = deferred || _.Deferred(),
         exitComplete = _.Deferred(),
         enterComplete = _.Deferred(),
-        publish = _.bind(function(name) {
-          var scene = toScene;
-          if (name === 'done') {
-            scene = fromScene;
-          }
-          if (scene) {
-            this.publish((scene ? scene.name : null) + ":" + name);
-            this.publish(name, (scene ? scene.name : null), toScene.name);
-          }
+        publish = _.bind(function(name, isExit) {
+          var sceneName = isExit ? fromScene : toScene;
+          sceneName = sceneName ? sceneName.name : '';
+
+          this.publish(name, fromScene, toScene);
+          this.publish(sceneName + ":" + name);
+
         }, this),
         bailout = _.bind(function() {
           this._transitioning = false;
@@ -338,12 +360,14 @@
           complete.reject();
         }, this),
         success = _.bind(function() {
+          publish('enter');
           this._transitioning = false;
           this._current = toScene;
+          publish('end');
           complete.resolve();
         }, this);
 
-    // Can't fire a transition that isn't defined
+
     if (!toScene) {
       throw "Scene '" + sceneName + "' not found!";
     }
@@ -353,12 +377,17 @@
       return complete.reject();
     }
 
+    publish('start');
+
     this._transitioning = true;
 
     if (fromScene) {
 
       // we are coming from a scene, so transition out of it.
       fromScene.to('exit', args, exitComplete);
+      exitComplete.done(function() {
+        publish('exit', true);
+      });
 
     } else {
       exitComplete.resolve();
@@ -367,20 +396,13 @@
     // when we're done exiting, enter the next set
     _.when(exitComplete).then(function() {
 
-      // mark the previous transition complete by firing off
-      // done.
-      publish('done');
-
-      // transition toScene's enter
       toScene.to('enter', args, enterComplete);
 
     }).fail(bailout);
 
-    enterComplete.then(function(){
-      publish('start');
-    })
-    .then(success)
-    .fail(bailout);
+    enterComplete
+      .then(success)
+      .fail(bailout);
 
     return complete.promise();
   }

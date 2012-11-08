@@ -45,7 +45,7 @@ test("Basic transition events", function() {
     'unloaded:start', 'unloaded:enter', 'unloaded:exit', 'unloaded:end',
     'loaded:start', 'loaded:enter', 'loaded:exit', 'loaded:end',
     'ending:start', 'ending:enter', 'ending:exit', 'ending:end'
-  ]
+  ];
   _.each(events, function(event) {
     app.subscribe(event, function() {
       sceneEventsActual.push(event);

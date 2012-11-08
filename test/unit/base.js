@@ -52,8 +52,8 @@ test("Create storyboard", 3, function() {
   app.start().then(function() {
     app.to('b').then(function() {
       app.to('ending').then(function() {
-        ok(app.counter === 20, app.counter)
-      })
+        ok(app.counter === 20, app.counter);
+      });
     });
   });
 });
@@ -63,8 +63,8 @@ test("Cloning", 6, function() {
   app.start().then(function() {
     app.to('b').then(function() {
       app.to('ending').then(function() {
-        ok(app.counter === 20, app.counter)
-      })
+        ok(app.counter === 20, app.counter);
+      });
     });
   });
 
@@ -73,8 +73,8 @@ test("Cloning", 6, function() {
   app2.start().then(function() {
     app2.to('b').then(function() {
       app2.to('ending').then(function() {
-        ok(app2.counter === 20, app2.counter)
-      })
+        ok(app2.counter === 20, app2.counter);
+      });
     });
   });
 });
@@ -125,8 +125,8 @@ test("Cloning deeply", function() {
    app.start().then(function() {
     app.to('b').then(function() {
       app.to('ending').then(function() {
-        ok(app.counter === 20, app.counter)
-      })
+        ok(app.counter === 20, app.counter);
+      });
     });
   });
 
@@ -135,8 +135,8 @@ test("Cloning deeply", function() {
   app2.start().then(function() {
     app2.to('b').then(function() {
       app2.to('ending').then(function() {
-        ok(app2.counter === 20, app2.counter)
-      })
+        ok(app2.counter === 20, app2.counter);
+      });
     });
   });
 });
