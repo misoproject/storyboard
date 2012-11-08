@@ -14,6 +14,9 @@
 
     options = options || {};
     
+    // save all options so we can clone this later...
+    this._originalOptions = options;
+
     // Set up the context for this storyboard. This will be
     // available as 'this' inside the transition functions.
     this._context = options.context || this;
@@ -72,10 +75,29 @@
   };
 
   Storyboard.HANDLERS = ['enter','exit'];
-  Storyboard.BLACKLIST = ['initial','scenes','enter','exit','context'];
+  Storyboard.BLACKLIST = ['_id', 'initial','scenes','enter','exit','context','_current'];
 
   _.extend(Storyboard.prototype, Miso.Events, {
     
+    /**
+    * Allows for cloning of a storyboard
+    * Returns:
+    *   s - a new Miso.Storyboard
+    */
+    clone : function() {
+
+      // clone nested storyboard
+      if (this.scenes) {
+        _.each(this._originalOptions.scenes, function(scene, name) {
+          if (scene instanceof Miso.Storyboard) {
+            this._originalOptions.scenes[name] = scene.clone();
+          }
+        }, this);
+      }
+
+      return new Miso.Storyboard(this._originalOptions);
+    },
+
     /**
     * Attach a new scene to an existing storyboard.
     * Params:
