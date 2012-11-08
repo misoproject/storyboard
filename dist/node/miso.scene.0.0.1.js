@@ -2,7 +2,7 @@ var _ = require("lodash");
 _.mixin(require("underscore.deferred"));
 
 /**
-* Miso.Storyboard - v0.0.1 - 11/7/2012
+* Miso.Storyboard - v0.0.1 - 11/8/2012
 * http://github.com/misoproject/storyboard
 * Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
@@ -134,6 +134,9 @@ _.mixin(require("underscore.deferred"));
 
     options = options || {};
     
+    // save all options so we can clone this later...
+    this._originalOptions = options;
+
     // Set up the context for this storyboard. This will be
     // available as 'this' inside the transition functions.
     this._context = options.context || this;
@@ -169,7 +172,6 @@ _.mixin(require("underscore.deferred"));
         
         // wrap functions so they can declare themselves as optionally
         // asynchronous without having to worry about deferred management.
-        // this exposes the this.async function.
         this.handlers[action] = wrap(options[action], action);
       
       }, this);
@@ -194,10 +196,29 @@ _.mixin(require("underscore.deferred"));
   };
 
   Storyboard.HANDLERS = ['enter','exit'];
-  Storyboard.BLACKLIST = ['initial','scenes','enter','exit','context'];
+  Storyboard.BLACKLIST = ['_id', 'initial','scenes','enter','exit','context','_current'];
 
   _.extend(Storyboard.prototype, Miso.Events, {
     
+    /**
+    * Allows for cloning of a storyboard
+    * Returns:
+    *   s - a new Miso.Storyboard
+    */
+    clone : function() {
+
+      // clone nested storyboard
+      if (this.scenes) {
+        _.each(this._originalOptions.scenes, function(scene, name) {
+          if (scene instanceof Miso.Storyboard) {
+            this._originalOptions.scenes[name] = scene.clone();
+          }
+        }, this);
+      }
+
+      return new Miso.Storyboard(this._originalOptions);
+    },
+
     /**
     * Attach a new scene to an existing storyboard.
     * Params:
@@ -274,6 +295,18 @@ _.mixin(require("underscore.deferred"));
       return (this._transitioning === true);
     },
 
+    /**
+    * Allows the changing of context. This will alter what 'this'
+    * will be set to inside the transition methods.
+    */
+    setContext : function(context) {
+      this._context = context;
+      if (this.scenes) {
+        _.each(this.scenes, function(scene) {
+          scene.setContext(context);
+        });
+      }
+    },
     
     _buildScenes : function( scenes ) {
       this.scenes = {};
@@ -287,6 +320,7 @@ _.mixin(require("underscore.deferred"));
   // Used as the to function to scenes which do not have children
   // These scenes only have their own enter and exit.
   function leaf_to( sceneName, argsArr, deferred ) {
+    
     this._transitioning = true;
     var complete = this._complete = deferred || _.Deferred(),
     args = argsArr ? argsArr : [],
@@ -306,7 +340,7 @@ _.mixin(require("underscore.deferred"));
     return complete.promise();
   }
 
-  // Used as the function to scenes that do have children.
+    // Used as the function to scenes that do have children.
   function children_to( sceneName, argsArr, deferred ) {
     var toScene = this.scenes[sceneName],
         fromScene = this._current,
@@ -314,55 +348,66 @@ _.mixin(require("underscore.deferred"));
         complete = this._complete = deferred || _.Deferred(),
         exitComplete = _.Deferred(),
         enterComplete = _.Deferred(),
-        publish = _.bind(function(name) {
-          this.publish(name, (fromScene ? fromScene.name : null), toScene.name);
+        publish = _.bind(function(name, isExit) {
+          var sceneName = isExit ? fromScene : toScene;
+          sceneName = sceneName ? sceneName.name : '';
+
+          this.publish(name, fromScene, toScene);
+          if (name !== 'start' || name !== 'end') {
+            this.publish(sceneName + ":" + name);
+          }
+
         }, this),
         bailout = _.bind(function() {
           this._transitioning = false;
-          complete.reject();
+          this._current = fromScene;
           publish('fail');
+          complete.reject();
         }, this),
         success = _.bind(function() {
+          publish('enter');
           this._transitioning = false;
           this._current = toScene;
+          publish('end');
           complete.resolve();
-          publish('done');
         }, this);
 
-    // Can't fire a transition that isn't defined
+
     if (!toScene) {
       throw "Scene '" + sceneName + "' not found!";
     }
-
-    publish('start');
 
     // we in the middle of a transition?
     if (this._transitioning) { 
       return complete.reject();
     }
 
+    publish('start');
+
     this._transitioning = true;
 
-    // initial event so there's no from scene
-    if (!fromScene) {
-      
-      exitComplete.resolve();
-      toScene.to('enter', args, enterComplete)
-      .fail(bailout);
-    
+    if (fromScene) {
+
+      // we are coming from a scene, so transition out of it.
+      fromScene.to('exit', args, exitComplete);
+      exitComplete.done(function() {
+        publish('exit', true);
+      });
+
     } else {
-      
-      //run before and after in order
-      //if either fail, run the bailout
-      fromScene.to('exit', args, exitComplete)
-      .done(function() {
-        toScene.to('enter', args, enterComplete).fail(bailout);
-      })
-      .fail(bailout);
+      exitComplete.resolve();
     }
 
-    //all events done, let's tidy up
-    _.when(exitComplete, enterComplete).then(success);
+    // when we're done exiting, enter the next set
+    _.when(exitComplete).then(function() {
+
+      toScene.to('enter', args, enterComplete);
+
+    }).fail(bailout);
+
+    enterComplete
+      .then(success)
+      .fail(bailout);
 
     return complete.promise();
   }

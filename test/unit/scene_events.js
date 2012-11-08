@@ -2,46 +2,77 @@
 
 module("Storyboard Event Integration");
 
-test("Basic transition events", 8, function() {
+test("Basic transition events", function() {
+  
+  var events = [
+    'start',
+    'x:unloaded:enter',
+    'enter',
+    'unloaded:enter',
+    'end',
+    'start',
+    'x:unloaded:exit',
+    'exit',
+    'unloaded:exit',
+    'x:loaded:enter',
+    'enter',
+    'loaded:enter',
+    'end',
+    'start',
+    'x:loaded:exit',
+    'exit',
+    'loaded:exit',
+    'x:ending:enter',
+    'enter',
+    'ending:enter',
+    'end'
+  ], actualEvents = [];
+
   var app = new Miso.Storyboard({
     initial : 'unloaded',
     scenes : {
-      unloaded : {},
-      loaded : {
+      unloaded : {
+        enter : function() {
+          actualEvents.push("x:unloaded:enter");
+        }, 
         exit : function() {
-          return false;
-        } 
+          actualEvents.push("x:unloaded:exit");
+        }
+      },
+      loaded : {
+        enter : function() {
+          actualEvents.push("x:loaded:enter");
+        }, 
+        exit : function() {
+          actualEvents.push("x:loaded:exit");
+        }
+      },
+      ending : {
+        enter : function() {
+          actualEvents.push("x:ending:enter");
+        }
       }
     }
   });
 
-
-  app.start().then(function() { 
-    var token = app.subscribe('start', function(from, to) {
-      equals(from, 'unloaded');
-      equals(to, 'loaded');
+  var eventList = [
+    'start','exit','enter','end',
+    'unloaded:enter', 'unloaded:exit',
+    'loaded:enter', 'loaded:exit',
+    'ending:enter', 'ending:exit'
+  ];
+  _.each(eventList, function(event) {
+    app.subscribe(event, function() {
+      actualEvents.push(event);
     });
+  });
 
-    app.subscribeOnce('start', function(from, to) {
-      equals(from, 'unloaded');
-      equals(to, 'loaded');
+  app.start().then(function() {
+    app.to('loaded').then(function() {
+      app.to('ending').then(function() {
+        ok(_.isEqual(actualEvents, events), actualEvents);
+      });
     });
-
-    app.subscribe('done', function(from, to) {
-      equals(from, 'unloaded');
-      equals(to, 'loaded');
-    });
-
-    app.subscribe('fail', function(from, to) {
-      equals(from, 'loaded');
-      equals(to, 'unloaded');
-    });
-
-    app.to('loaded');
-
-    app.unsubscribe('start', { token : token });
-
-    app.to('unloaded');
   });
 
 });
