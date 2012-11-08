@@ -25,7 +25,8 @@
         _.each(this._events[name], function(subscription) {
           subscription.callback.apply(subscription.context || this, args);
         }, this);
-      }  
+      }
+      return this;
     },
 
     /**
@@ -76,6 +77,7 @@
         this.unsubscribe(name, { token : token });
         callback.apply(this, arguments);
       }, this, token);
+      return token;
     },
 
     /**
@@ -101,6 +103,7 @@
       } else {
         this._events[name] = [];
       }
+      return this;
     }
 
   };
