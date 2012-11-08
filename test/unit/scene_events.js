@@ -4,65 +4,74 @@ module("Storyboard Event Integration");
 
 test("Basic transition events", function() {
   
-  var baseEvents = [
+  var events = [
     'start',
+    'x:unloaded:enter',
     'enter',
-    'end',
-    'start',
-    'exit',
-    'enter',
-    'end',
-    'start',
-    'exit',
-    'enter',
-    'end'
-  ], baseEventsActual = [];
-
-  var sceneEvents = [
-    'unloaded:start',
     'unloaded:enter',
-    'unloaded:end',
-    'loaded:start',
+    'end',
+    'start',
+    'x:unloaded:exit',
+    'exit',
     'unloaded:exit',
+    'x:loaded:enter',
+    'enter',
     'loaded:enter',
-    'loaded:end',
-    'ending:start',
+    'end',
+    'start',
+    'x:loaded:exit',
+    'exit',
     'loaded:exit',
+    'x:ending:enter',
+    'enter',
     'ending:enter',
-    'ending:end'
-  ], sceneEventsActual = []; 
+    'end'
+  ], actualEvents = [];
 
   var app = new Miso.Storyboard({
     initial : 'unloaded',
     scenes : {
-      unloaded : {},
-      loaded : {},
-      ending : {}
+      unloaded : {
+        enter : function() {
+          actualEvents.push("x:unloaded:enter");
+        }, 
+        exit : function() {
+          actualEvents.push("x:unloaded:exit");
+        }
+      },
+      loaded : {
+        enter : function() {
+          actualEvents.push("x:loaded:enter");
+        }, 
+        exit : function() {
+          actualEvents.push("x:loaded:exit");
+        }
+      },
+      ending : {
+        enter : function() {
+          actualEvents.push("x:ending:enter");
+        }
+      }
     }
   });
 
-  var events = [
-    'unloaded:start', 'unloaded:enter', 'unloaded:exit', 'unloaded:end',
-    'loaded:start', 'loaded:enter', 'loaded:exit', 'loaded:end',
-    'ending:start', 'ending:enter', 'ending:exit', 'ending:end'
+  var eventList = [
+    'start','exit','enter','end',
+    'unloaded:enter', 'unloaded:exit',
+    'loaded:enter', 'loaded:exit',
+    'ending:enter', 'ending:exit'
   ]
-  _.each(events, function(event) {
+  _.each(eventList, function(event) {
     app.subscribe(event, function() {
-      sceneEventsActual.push(event);
-    });
-  });
-
-  _.each(['start','exit','enter','end'], function(event) {
-    app.subscribe(event, function() {
-      baseEventsActual.push(event);
+      actualEvents.push(event);
     });
   });
 
   app.start().then(function() {
     app.to('loaded').then(function() {
       app.to('ending').then(function() {
-        ok(_.isEqual(sceneEvents, sceneEventsActual), sceneEventsActual);
-        ok(_.isEqual(baseEvents, baseEventsActual), baseEventsActual);
+        ok(_.isEqual(actualEvents, events), actualEvents);
+        console.log(actualEvents, events);
       });
     });
   });

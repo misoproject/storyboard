@@ -211,7 +211,9 @@
           sceneName = sceneName ? sceneName.name : '';
 
           this.publish(name, fromScene, toScene);
-          this.publish(sceneName + ":" + name);
+          if (name !== 'start' || name !== 'end') {
+            this.publish(sceneName + ":" + name);
+          }
 
         }, this),
         bailout = _.bind(function() {
