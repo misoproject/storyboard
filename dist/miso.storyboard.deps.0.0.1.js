@@ -4647,7 +4647,8 @@
         _.each(this._events[name], function(subscription) {
           subscription.callback.apply(subscription.context || this, args);
         }, this);
-      }  
+      }
+      return this;
     },
 
     /**
@@ -4723,6 +4724,7 @@
       } else {
         this._events[name] = [];
       }
+      return this;
     }
 
   };
