@@ -18,7 +18,7 @@ module.exports = function(grunt) {
     });
 
     // Write the contents out
-    grunt.file.write("dist/node/miso.scene." + grunt.template.process(grunt.config("pkg").version) + ".js", output);
+    grunt.file.write("dist/node/miso.storyboard." + grunt.template.process(grunt.config("pkg").version) + ".js", output);
   });
 
 };
