@@ -2,64 +2,67 @@
 
 module("Storyboard Event Integration");
 
-test("Basic transition events", 1, function() {
+test("Basic transition events", function() {
   
-  var triggersResult = [
-    "unloaded:enter",
-    "event:unloaded:start",
-    "unloaded:exit",
-    "event:unloaded:done",
-    "loaded:enter",
-    "event:loaded:start",
-    "loaded:exit",
-    "event:loaded:done"
-  ], actual = [];
-  
+  var baseEvents = [
+    'start',
+    'enter',
+    'end',
+    'start',
+    'exit',
+    'enter',
+    'end',
+    'start',
+    'exit',
+    'enter',
+    'end'
+  ], baseEventsActual = [];
+
+  var sceneEvents = [
+    'unloaded:start',
+    'unloaded:enter',
+    'unloaded:end',
+    'loaded:start',
+    'unloaded:exit',
+    'loaded:enter',
+    'loaded:end',
+    'ending:start',
+    'loaded:exit',
+    'ending:enter',
+    'ending:end'
+  ], sceneEventsActual = []; 
+
   var app = new Miso.Storyboard({
     initial : 'unloaded',
     scenes : {
-      unloaded : {
-        enter : function() {
-          actual.push("unloaded:enter");
-        }, 
-        exit : function() {
-          actual.push("unloaded:exit");
-        }
-      },
-      loaded : {
-        enter : function() {
-          actual.push("loaded:enter");
-        }, 
-        exit : function() {
-          actual.push("loaded:exit");
-        }
-      },
+      unloaded : {},
+      loaded : {},
       ending : {}
-
     }
   });
 
-  // verify event triggering order
-  app.subscribe('unloaded:start', function() {
-    actual.push("event:unloaded:start");
+  var events = [
+    'unloaded:start', 'unloaded:enter', 'unloaded:exit', 'unloaded:end',
+    'loaded:start', 'loaded:enter', 'loaded:exit', 'loaded:end',
+    'ending:start', 'ending:enter', 'ending:exit', 'ending:end'
+  ]
+  _.each(events, function(event) {
+    app.subscribe(event, function() {
+      sceneEventsActual.push(event);
+    });
   });
 
-  app.subscribe('unloaded:done', function() {
-    actual.push("event:unloaded:done");
+  _.each(['start','exit','enter','end'], function(event) {
+    app.subscribe(event, function() {
+      baseEventsActual.push(event);
+    });
   });
 
-  app.subscribe('loaded:start', function() {
-    actual.push("event:loaded:start");
-  });
-
-  app.subscribe('loaded:done', function() {
-    actual.push("event:loaded:done");
-  });
-  
   app.start().then(function() {
     app.to('loaded').then(function() {
       app.to('ending').then(function() {
-        ok(_.isEqual(triggersResult, actual), actual);
+        ok(_.isEqual(sceneEvents, sceneEventsActual), sceneEventsActual);
+        ok(_.isEqual(baseEvents, baseEventsActual), baseEventsActual);
       });
     });
   });

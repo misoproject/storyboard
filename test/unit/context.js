@@ -107,7 +107,7 @@ test("Applying a context to a simple scene and then switching it", function() {
     }
   });
 
-  app.subscribe('c1:done', function() {
+  app.subscribe('c1:exit', function() {
     app.setContext(context2);
   });
 
