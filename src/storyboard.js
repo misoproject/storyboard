@@ -50,8 +50,9 @@
         // save the enter and exit functions and if they don't exist, define them.
         options[action] = options[action] || function() { return true; };
         
-        // save handlers. Note we haven't wrapped them yet.
-        this.handlers[action] = options[action];
+        // wrap functions so they can declare themselves as optionally
+        // asynchronous without having to worry about deferred management.
+        this.handlers[action] = wrap(options[action], action);
       
       }, this);
 
@@ -214,9 +215,7 @@
         complete.reject();
       }, this));
 
-    // wrap handler for this call. We do this here so that we can change
-    // contexts whenever we deem necessary.
-    wrap(this.handlers[sceneName], sceneName).call(this._context, args, handlerComplete);
+    this.handlers[sceneName].call(this._context, args, handlerComplete);
 
     return complete.promise();
   }
@@ -229,15 +228,13 @@
         complete = this._complete = deferred || _.Deferred(),
         exitComplete = _.Deferred(),
         enterComplete = _.Deferred(),
-        publish = _.bind(function(name) {
-          var scene = toScene;
-          if (name === 'done') {
-            scene = fromScene;
-          }
-          if (scene) {
-            this.publish((scene ? scene.name : null) + ":" + name);
-            this.publish(name, (scene ? scene.name : null), toScene.name);
-          }
+        publish = _.bind(function(name, isExit) {
+          var sceneName = isExit ? fromScene : toScene;
+          sceneName = sceneName ? sceneName.name : '';
+
+          this.publish(name, fromScene, toScene);
+          this.publish(sceneName + ":" + name);
+
         }, this),
         bailout = _.bind(function() {
           this._transitioning = false;
@@ -246,12 +243,14 @@
           complete.reject();
         }, this),
         success = _.bind(function() {
+          publish('enter');
           this._transitioning = false;
           this._current = toScene;
+          publish('end');
           complete.resolve();
         }, this);
 
-    // Can't fire a transition that isn't defined
+
     if (!toScene) {
       throw "Scene '" + sceneName + "' not found!";
     }
@@ -261,12 +260,17 @@
       return complete.reject();
     }
 
+    publish('start');
+
     this._transitioning = true;
 
     if (fromScene) {
 
       // we are coming from a scene, so transition out of it.
       fromScene.to('exit', args, exitComplete);
+      exitComplete.done(function() {
+        publish('exit', true);
+      });
 
     } else {
       exitComplete.resolve();
@@ -275,20 +279,13 @@
     // when we're done exiting, enter the next set
     _.when(exitComplete).then(function() {
 
-      // mark the previous transition complete by firing off
-      // done.
-      publish('done');
-
-      // transition toScene's enter
       toScene.to('enter', args, enterComplete);
 
     }).fail(bailout);
 
-    enterComplete.then(function(){
-      publish('start');
-    })
-    .then(success)
-    .fail(bailout);
+    enterComplete
+      .then(success)
+      .fail(bailout);
 
     return complete.promise();
   }
