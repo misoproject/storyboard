@@ -47,8 +47,9 @@
         // save the enter and exit functions and if they don't exist, define them.
         options[action] = options[action] || function() { return true; };
         
-        // save handlers. Note we haven't wrapped them yet.
-        this.handlers[action] = options[action];
+        // wrap functions so they can declare themselves as optionally
+        // asynchronous without having to worry about deferred management.
+        this.handlers[action] = wrap(options[action], action);
       
       }, this);
 
@@ -192,9 +193,7 @@
         complete.reject();
       }, this));
 
-    // wrap handler for this call. We do this here so that we can change
-    // contexts whenever we deem necessary.
-    wrap(this.handlers[sceneName], sceneName).call(this._context, args, handlerComplete);
+    this.handlers[sceneName].call(this._context, args, handlerComplete);
 
     return complete.promise();
   }
