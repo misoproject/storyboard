@@ -1,3 +1,6 @@
+var _ = require("lodash");
+_.mixin(require("underscore.deferred"));
+
 /**
 * Miso.Storyboard - v0.0.1 - 11/8/2012
 * http://github.com/misoproject/storyboard
@@ -448,3 +451,7 @@
 
 
 }(this, _));
+
+
+// Expose the module
+module.exports = this.Miso;

@@ -77,7 +77,6 @@
         this.unsubscribe(name, { token : token });
         callback.apply(this, arguments);
       }, this, token);
-      return token;
     },
 
     /**
