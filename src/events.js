@@ -63,6 +63,8 @@
       } else {
         this._events[name] = [];
       }
+
+      return this;
     }
 
   };

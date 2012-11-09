@@ -9,6 +9,10 @@
     this._id = _.uniqueId('scene');
 
     if ( config.scenes ) { //has child scenes
+      _.each(Storyboard.HANDLERS, function(action) {
+        config.scenes[action] = config.scenes[action] || function() { return true; };
+      });
+        
       this._buildScenes( config.scenes );
       this._initial = config.initial;
       this.to = children_to;
@@ -149,14 +153,14 @@
     //initial event so there's no from scene
     if (!fromScene) {
       exitComplete.resolve();
-      toScene.to('enter', args, enterComplete)
+      toScene.to(toScene._initial || 'enter', args, enterComplete)
       .fail(bailout);
     } else {
       //run before and after in order
       //if either fail, run the bailout
       fromScene.to('exit', args, exitComplete)
       .done(function() {
-        toScene.to('enter', args, enterComplete).fail(bailout);
+        toScene.to(toScene._initial || 'enter', args, enterComplete).fail(bailout);
       })
       .fail(bailout);
     }
