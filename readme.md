@@ -193,7 +193,7 @@ var app = new Miso.Scene({
   inital 'unloaded',
   scenes : {
     unloaded : {},
-    walkthrough : loadedScene
+    loaded : walkthrough
   }
 });
 ```
