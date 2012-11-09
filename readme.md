@@ -200,7 +200,7 @@ var app = new Miso.Scene({
 
 ## Contributing ##
 
-To build Scene you'll need npm, node.js's package management system and grunt
+To build Miso.Storyboard you'll need npm, node.js's package management system and grunt
 
 `npm install miso.storyboard`
 
