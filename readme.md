@@ -202,7 +202,7 @@ var app = new Miso.Scene({
 
 To build Scene you'll need npm, node.js's package management system and grunt
 
-`npm install`
+`npm install miso.storyboard`
 
 To build Miso.Storyboard, call
 
