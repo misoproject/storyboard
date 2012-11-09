@@ -193,16 +193,16 @@ var app = new Miso.Scene({
   inital 'unloaded',
   scenes : {
     unloaded : {},
-    walkthrough : loadedScene
+    loaded : walkthrough
   }
 });
 ```
 
 ## Contributing ##
 
-To build Scene you'll need npm, node.js's package management system and grunt
+To build Miso.Storyboard you'll need npm, node.js's package management system and grunt
 
-`npm install`
+`npm install miso.storyboard`
 
 To build Miso.Storyboard, call
 
