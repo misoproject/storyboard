@@ -70,7 +70,18 @@
       if (_.indexOf(Storyboard.BLACKLIST, name) !== -1) { 
         return; 
       }
-      this[name] = prop;
+
+      if (_.isFunction(prop)) {
+        this[name] = (function(contextOwner) {
+          return function() {
+            prop.apply(contextOwner._context || contextOwner, arguments);
+          };
+        }(this));  
+      } else {
+        this[name] = prop;
+      }
+      
+
     }, this);
 
   };
