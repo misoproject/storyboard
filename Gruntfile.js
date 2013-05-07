@@ -1,21 +1,22 @@
-/* global config:true, task:true */
+/* global module */
+
 module.exports = function(grunt) {
 
-  var fullBanner = '/**\n' +
-                '* <%= pkg.title %> - v<%= pkg.version %> - <%= grunt.template.today("m/d/yyyy") %>\n' +
-                '* <%= pkg.homepage %>\n' +
-                '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.authors %>;\n' +
-                '* Dual Licensed: <%= _.pluck(pkg.licenses, "type").join(", ") %>\n' +
-                '* https://github.com/misoproject/storyboard/blob/master/LICENSE-MIT \n' +
+  var fullBanner = "/**\n" +
+                "* <%= pkg.title %> - v<%= pkg.version %> - <%= grunt.template.today(\"m/d/yyyy\") %>\n" +
+                "* <%= pkg.homepage %>\n" +
+                "* Copyright (c) <%= grunt.template.today(\"yyyy\") %> <%= pkg.authors %>;\n" +
+                "* Dual Licensed: <%= _.pluck(pkg.licenses, \"type\").join(\", \") %>\n" +
+                "* https://github.com/misoproject/storyboard/blob/master/LICENSE-MIT \n" +
                 "* https://github.com/misoproject/storyboard/blob/master/LICENSE-GPL \n" +
-                '*/';
+                "*/";
 
   grunt.initConfig({
     pkg : grunt.file.readJSON("package.json"),
 
     meta : {
       banner :  fullBanner,
-      lastbuild : '<%= grunt.template.today("yyyy/mm/dd hh:ss") %>'
+      lastbuild : "<%= grunt.template.today(\"yyyy/mm/dd hh:ss\") %>"
     },
 
     node: {
@@ -25,7 +26,7 @@ module.exports = function(grunt) {
 
     concat : {
       options : {
-        banner : fullBanner,
+        banner : fullBanner
       },
 
       fullnodeps: {
@@ -62,7 +63,7 @@ module.exports = function(grunt) {
         },
         dest : "dist/LASTBUILD",
         src : [
-          "<%= 'lastbuild' %>"
+          "<%= \"lastbuild\" %>"
         ]
       }
     },
@@ -80,14 +81,14 @@ module.exports = function(grunt) {
         dest : "dist/miso.storyboard.min.<%= pkg.version %>.js",
         src : [
           "<%= meta.banner >",
-          "dist/miso.storyboard.<%= pkg.version %>.js" 
+          "dist/miso.storyboard.<%= pkg.version %>.js"
         ]
       },
       mindeps : {
         dest : "dist/miso.storyboard.deps.min.<%= pkg.version %>.js",
         src : [
           "<%= meta.banner %>",
-          "dist/miso.storyboard.deps.<%= pkg.version %>.js" 
+          "dist/miso.storyboard.deps.<%= pkg.version %>.js"
         ]
       }
     },
@@ -95,7 +96,7 @@ module.exports = function(grunt) {
     qunit : {
       all : {
         options : {
-          urls : [ 
+          urls : [
             "http://localhost:8000/test/index.html"
           ]
         }
@@ -106,7 +107,7 @@ module.exports = function(grunt) {
       server: {
         options: {
           port: 8000,
-          base: '.'
+          base: "."
         }
       }
     },
@@ -191,13 +192,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-contrib-copy");
   grunt.loadNpmTasks("grunt-contrib-less");
   grunt.loadNpmTasks("grunt-contrib-connect");
-  grunt.loadNpmTasks("grunt-contrib-jst");
   grunt.loadNpmTasks("grunt-contrib-concat");
   grunt.loadNpmTasks("grunt-contrib-compress");
   grunt.loadNpmTasks("grunt-contrib-clean");
   grunt.loadNpmTasks("grunt-contrib-qunit");
 
   // Default task.
-grunt.registerTask('default', ['jshint', 'connect', 'qunit', 'concat', 'uglify', 'node']);
+grunt.registerTask("default", ["jshint", "connect", "qunit", "concat", "uglify", "node"]);
 };
 
