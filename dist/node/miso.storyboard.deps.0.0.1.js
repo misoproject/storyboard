@@ -2,14 +2,13 @@ var _ = require("lodash");
 _.mixin(require("underscore.deferred"));
 
 /**
-* Miso.Storyboard - v0.0.1 - 11/8/2012
+* Miso.Storyboard - v0.0.1 - 3/23/2013
 * http://github.com/misoproject/storyboard
-* Copyright (c) 2012 Alex Graul, Irene Ros, Rich Harris;
+* Copyright (c) 2013 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
 * https://github.com/misoproject/storyboard/blob/master/LICENSE-MIT 
-*/
-
-(function(global, _) {
+* https://github.com/misoproject/storyboard/blob/master/LICENSE-GPL 
+*/(function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
 
@@ -192,7 +191,18 @@ _.mixin(require("underscore.deferred"));
       if (_.indexOf(Storyboard.BLACKLIST, name) !== -1) { 
         return; 
       }
-      this[name] = prop;
+
+      if (_.isFunction(prop)) {
+        this[name] = (function(contextOwner) {
+          return function() {
+            prop.apply(contextOwner._context || contextOwner, arguments);
+          };
+        }(this));  
+      } else {
+        this[name] = prop;
+      }
+      
+
     }, this);
 
   };
