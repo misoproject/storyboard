@@ -1,11 +1,15 @@
+var _ = require("lodash");
+_.mixin(require("underscore.deferred"));
+
 /**
-* Miso.Storyboard - v0.0.1 - 3/23/2013
+* Miso.Storyboard - v0.1.0 - 5/10/2013
 * http://github.com/misoproject/storyboard
 * Copyright (c) 2013 Alex Graul, Irene Ros, Rich Harris;
 * Dual Licensed: MIT, GPL
 * https://github.com/misoproject/storyboard/blob/master/LICENSE-MIT 
 * https://github.com/misoproject/storyboard/blob/master/LICENSE-GPL 
-*/(function(global, _) {
+*//* global _ */
+(function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
 
@@ -54,8 +58,8 @@
 
       var subscription = {
         callback : callback,
-        priority : options.priority || 0, 
-        token : options.token || _.uniqueId('t'),
+        priority : options.priority || 0,
+        token : options.token || _.uniqueId("t"),
         context : options.context || this
       };
       var position;
@@ -79,7 +83,7 @@
     */
     subscribeOnce : function(name, callback) {
       this._events = this._events || {};
-      var token = _.uniqueId('t');
+      var token = _.uniqueId("t");
       return this.subscribe(name, function() {
         this.unsubscribe(name, { token : token });
         callback.apply(this, arguments);
@@ -116,6 +120,8 @@
 
 }(this, _));
 
+/* global _ */
+
 (function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
@@ -127,25 +133,40 @@
   *     context - optional. Set a different context for the storyboard.
   *               by default it's the scene that is being executed.
   *     
-  */ 
+  */
   var Storyboard = Miso.Storyboard = function(options) {
 
     options = options || {};
-    
+
     // save all options so we can clone this later...
     this._originalOptions = options;
 
     // Set up the context for this storyboard. This will be
-    // available as 'this' inside the transition functions.
+    // available as "this" inside the transition functions.
     this._context = options.context || this;
 
     // Assign custom id to the storyboard.
-    this._id = _.uniqueId('scene');
+    this._id = _.uniqueId("scene");
 
     // If there are scenes defined, initialize them.
-    if (options.scenes) { 
+    if (options.scenes) {
 
-      // Convert the scenes to actually nested storyboards. A 'scene'
+      // if the scenes are actually just set to a function, change them
+      // to an enter property
+      _.each(options.scenes, function(scene, name) {
+        if (typeof scene === "function") {
+          options.scenes[name] = {
+            enter : scene
+          };
+        }
+      });
+
+      // make sure enter/exit are defined as passthroughs if not present.
+      _.each(Storyboard.HANDLERS, function(action) {
+        options.scenes[action] = options.scenes[action] || function() { return true; };
+      });
+
+      // Convert the scenes to actually nested storyboards. A "scene"
       // is really just a storyboard of one action with no child scenes.
       this._buildScenes(options.scenes);
 
@@ -156,7 +177,7 @@
       // Transition function given that there are child scenes.
       this.to = children_to;
 
-    } else { 
+    } else {
 
       // This is a terminal storyboad in that it doesn't actually have any child
       // scenes, just its own enter and exit functions.
@@ -164,14 +185,14 @@
       this.handlers = {};
 
       _.each(Storyboard.HANDLERS, function(action) {
-        
+
         // save the enter and exit functions and if they don't exist, define them.
         options[action] = options[action] || function() { return true; };
-        
+
         // wrap functions so they can declare themselves as optionally
         // asynchronous without having to worry about deferred management.
         this.handlers[action] = wrap(options[action], action);
-      
+
       }, this);
 
       // Transition function given that this is a terminal storyboard.
@@ -184,9 +205,9 @@
     // helper methods that are not going to be wrapped (and thus instrumented with 
     // any deferred and async behavior.)
     _.each(options, function(prop, name) {
-      
-      if (_.indexOf(Storyboard.BLACKLIST, name) !== -1) { 
-        return; 
+
+      if (_.indexOf(Storyboard.BLACKLIST, name) !== -1) {
+        return;
       }
 
       if (_.isFunction(prop)) {
@@ -194,21 +215,20 @@
           return function() {
             prop.apply(contextOwner._context || contextOwner, arguments);
           };
-        }(this));  
+        }(this));
       } else {
         this[name] = prop;
       }
-      
 
     }, this);
 
   };
 
-  Storyboard.HANDLERS = ['enter','exit'];
-  Storyboard.BLACKLIST = ['_id', 'initial','scenes','enter','exit','context','_current'];
+  Storyboard.HANDLERS = ["enter","exit"];
+  Storyboard.BLACKLIST = ["_id", "initial","scenes","enter","exit","context","_current"];
 
   _.extend(Storyboard.prototype, Miso.Events, {
-    
+
     /**
     * Allows for cloning of a storyboard
     * Returns:
@@ -235,13 +255,13 @@
     *   parent - The storyboard to attach this current scene to.
     */
     attach : function(name, parent) {
-      
+
       this.name = name;
       this.parent = parent;
-      
+
       // if the parent has a custom context the child should inherit it
       if (parent._context && (parent._context._id !== parent._id)) {
-        
+
         this._context = parent._context;
         if (this.scenes) {
           _.each(this.scenes , function(scene) {
@@ -305,7 +325,7 @@
     },
 
     /**
-    * Allows the changing of context. This will alter what 'this'
+    * Allows the changing of context. This will alter what "this"
     * will be set to inside the transition methods.
     */
     setContext : function(context) {
@@ -316,7 +336,7 @@
         });
       }
     },
-    
+
     _buildScenes : function( scenes ) {
       this.scenes = {};
       _.each(scenes, function(scene, name) {
@@ -329,7 +349,7 @@
   // Used as the to function to scenes which do not have children
   // These scenes only have their own enter and exit.
   function leaf_to( sceneName, argsArr, deferred ) {
-    
+
     this._transitioning = true;
     var complete = this._complete = deferred || _.Deferred(),
     args = argsArr ? argsArr : [],
@@ -359,10 +379,10 @@
         enterComplete = _.Deferred(),
         publish = _.bind(function(name, isExit) {
           var sceneName = isExit ? fromScene : toScene;
-          sceneName = sceneName ? sceneName.name : '';
+          sceneName = sceneName ? sceneName.name : "";
 
           this.publish(name, fromScene, toScene);
-          if (name !== 'start' || name !== 'end') {
+          if (name !== "start" || name !== "end") {
             this.publish(sceneName + ":" + name);
           }
 
@@ -370,37 +390,37 @@
         bailout = _.bind(function() {
           this._transitioning = false;
           this._current = fromScene;
-          publish('fail');
+          publish("fail");
           complete.reject();
         }, this),
         success = _.bind(function() {
-          publish('enter');
+          publish("enter");
           this._transitioning = false;
           this._current = toScene;
-          publish('end');
+          publish("end");
           complete.resolve();
         }, this);
 
 
     if (!toScene) {
-      throw "Scene '" + sceneName + "' not found!";
+      throw "Scene \"" + sceneName + "\" not found!";
     }
 
     // we in the middle of a transition?
-    if (this._transitioning) { 
+    if (this._transitioning) {
       return complete.reject();
     }
 
-    publish('start');
+    publish("start");
 
     this._transitioning = true;
 
     if (fromScene) {
 
       // we are coming from a scene, so transition out of it.
-      fromScene.to('exit', args, exitComplete);
+      fromScene.to("exit", args, exitComplete);
       exitComplete.done(function() {
-        publish('exit', true);
+        publish("exit", true);
       });
 
     } else {
@@ -410,7 +430,7 @@
     // when we're done exiting, enter the next set
     _.when(exitComplete).then(function() {
 
-      toScene.to('enter', args, enterComplete);
+      toScene.to(toScene._initial || "enter", args, enterComplete);
 
     }).fail(bailout);
 
@@ -422,7 +442,7 @@
   }
 
   function wrap(func, name) {
-    
+
     //don't wrap non-functions
     if ( !_.isFunction(func)) { return func; }
     //don't wrap private functions
@@ -435,7 +455,7 @@
           result;
 
           deferred = deferred || _.Deferred();
-          
+
           this.async = function() {
             async = true;
             return function(pass) {
@@ -455,6 +475,8 @@
     return wrappedFunc;
   }
 
-
-
 }(this, _));
+
+
+// Expose the module
+module.exports = this.Miso;

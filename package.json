@@ -2,7 +2,7 @@
   "name" : "miso.storyboard",
   "title" : "Miso.Storyboard",
   "description" : "Storyboard is a state management library that makes orchestrating the flows of your application easy using storyboards.",
-  "version" : "0.0.1",
+  "version" : "0.1.0",
   "homepage" : "http://github.com/misoproject/storyboard",
   "authors" : "Alex Graul, Irene Ros, Rich Harris",
 
