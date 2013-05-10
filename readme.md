@@ -198,6 +198,66 @@ var app = new Miso.Scene({
 });
 ```
 
+## Simplified Storyboards ##
+
+While the main goal of Storyboard is to help you manage your transition enter and exit phases, you can create simplified storyboards that only have `enter` behaviour like so:
+
+```javscript
+var walkthrough = new Miso.Scene({
+  initial : 'one',
+  scenes : {
+    one : function() {
+      // do something
+      console.log("Doing task one.");
+    },
+    two : function() {
+      // do something else
+      console.log("Doing task two.");
+    }
+    three : {}
+  }
+});
+
+walkthrough.start().then(function() {
+  walkthrough.to("two");
+});
+
+// output:
+// Doing task one.
+// Doing task two.
+```
+
+The above is functionaly equivalent to:
+
+```javscript
+var walkthrough = new Miso.Scene({
+  initial : 'one',
+  scenes : {
+    one : {
+      enter : function() {
+        // do something
+        console.log("Doing task one.");
+      }
+    },
+    two : {
+      enter : function() {
+        // do something else
+        console.log("Doing task two.");
+      }
+    },
+    three : {}
+  }
+});
+
+walkthrough.start().then(function() {
+  walkthrough.to("two");
+});
+
+// output:
+// Doing task one.
+// Doing task two.
+```
+
 ## Contributing ##
 
 To build Miso.Storyboard you'll need npm, node.js's package management system and grunt

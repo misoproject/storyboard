@@ -1,40 +1,40 @@
-
+/* global Miso,module,test,ok,_ */
 
 module("Storyboard Event Integration");
 
 test("Basic transition events", function() {
-  
+
   var events = [
-    'start',
-    'x:unloaded:enter',
-    'enter',
-    'unloaded:enter',
-    'end',
-    'start',
-    'x:unloaded:exit',
-    'exit',
-    'unloaded:exit',
-    'x:loaded:enter',
-    'enter',
-    'loaded:enter',
-    'end',
-    'start',
-    'x:loaded:exit',
-    'exit',
-    'loaded:exit',
-    'x:ending:enter',
-    'enter',
-    'ending:enter',
-    'end'
+    "start",
+    "x:unloaded:enter",
+    "enter",
+    "unloaded:enter",
+    "end",
+    "start",
+    "x:unloaded:exit",
+    "exit",
+    "unloaded:exit",
+    "x:loaded:enter",
+    "enter",
+    "loaded:enter",
+    "end",
+    "start",
+    "x:loaded:exit",
+    "exit",
+    "loaded:exit",
+    "x:ending:enter",
+    "enter",
+    "ending:enter",
+    "end"
   ], actualEvents = [];
 
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {
         enter : function() {
           actualEvents.push("x:unloaded:enter");
-        }, 
+        },
         exit : function() {
           actualEvents.push("x:unloaded:exit");
         }
@@ -42,7 +42,7 @@ test("Basic transition events", function() {
       loaded : {
         enter : function() {
           actualEvents.push("x:loaded:enter");
-        }, 
+        },
         exit : function() {
           actualEvents.push("x:loaded:exit");
         }
@@ -56,10 +56,10 @@ test("Basic transition events", function() {
   });
 
   var eventList = [
-    'start','exit','enter','end',
-    'unloaded:enter', 'unloaded:exit',
-    'loaded:enter', 'loaded:exit',
-    'ending:enter', 'ending:exit'
+    "start","exit","enter","end",
+    "unloaded:enter", "unloaded:exit",
+    "loaded:enter", "loaded:exit",
+    "ending:enter", "ending:exit"
   ];
   _.each(eventList, function(event) {
     app.subscribe(event, function() {
@@ -68,8 +68,8 @@ test("Basic transition events", function() {
   });
 
   app.start().then(function() {
-    app.to('loaded').then(function() {
-      app.to('ending').then(function() {
+    app.to("loaded").then(function() {
+      app.to("ending").then(function() {
         ok(_.isEqual(actualEvents, events), actualEvents);
       });
     });
