@@ -173,7 +173,57 @@ test("applying a context to nested rigs", 6, function() {
   });
 
   app.start().then(function() {
-    app.to('loaded');
+    app.to("loaded");
   });
 });
 
+test("nesting with defaulted scene definitions on children", function() {
+  var order = [
+    "unloaded:enter",
+    "loading:files",
+    "loading:templates",
+    "something:enter"
+  ], actualOrder = [];
+  var loading = new Miso.Storyboard({
+    initial : "files",
+    scenes : {
+      files : {
+        enter : function() {
+          actualOrder.push("loading:files");
+        }
+      },
+      templates : {
+        enter : function() {
+          actualOrder.push("loading:templates");
+        }
+      }
+    }
+  });
+
+  var app = new Miso.Storyboard({
+    initial : "unloaded",
+    scenes : {
+      unloaded : {
+        enter: function() {
+          actualOrder.push("unloaded:enter");
+        }
+      },
+      loaded : loading,
+      something : {
+        enter : function() {
+          actualOrder.push("something:enter");
+        }
+      }
+    }
+  });
+
+  app.start().then(function() {
+    app.to("loaded").then(function() {
+      loading.to("templates").then(function() {
+        app.to("something");
+        equals(order.join(""), actualOrder.join(""));
+      });
+    });
+  });
+
+});

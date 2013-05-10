@@ -27,7 +27,12 @@
     this._id = _.uniqueId("scene");
 
     // If there are scenes defined, initialize them.
-    if (options.scenes) { 
+    if (options.scenes) {
+
+      // make sure enter/exit are defined as passthroughs if not present.
+      _.each(Storyboard.HANDLERS, function(action) {
+        options.scenes[action] = options.scenes[action] || function() { return true; };
+      });
 
       // Convert the scenes to actually nested storyboards. A "scene"
       // is really just a storyboard of one action with no child scenes.
@@ -293,7 +298,7 @@
     // when we're done exiting, enter the next set
     _.when(exitComplete).then(function() {
 
-      toScene.to('enter', args, enterComplete);
+      toScene.to(toScene._initial || "enter", args, enterComplete);
 
     }).fail(bailout);
 
