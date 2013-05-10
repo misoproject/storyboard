@@ -49,8 +49,40 @@ module("base", {
   }
 });
 
+test("Function only scenes", function() {
+  var nums = [];
+  var sb = new Miso.Storyboard({
+    initial : "a",
+    scenes: {
+      a : function() {
+        nums.push(1);
+      },
+      b : function() {
+        nums.push(2);
+      },
+      c : function() {
+        nums.push(3);
+      },
+      d : {
+        enter : function() {
+          nums.push(4);
+        }
+      }
+    }
+  });
+
+  sb.start().then(function() {
+    sb.to("b").then(function() {
+      sb.to("c").then(function() {
+        sb.to("d").then(function() {
+          ok(_.isEqual(nums, [1,2,3,4]), "nums are equal");
+        });
+      });
+    });
+  });
+});
+
 test("Create storyboard", 3, function() {
-  
   app.start().then(function() {
     app.to("b").then(function() {
       app.to("ending").then(function() {
@@ -61,7 +93,6 @@ test("Create storyboard", 3, function() {
 });
 
 test("Cloning", 6, function() {
-  
   app.start().then(function() {
     app.to("b").then(function() {
       app.to("ending").then(function() {
@@ -99,7 +130,6 @@ test("Cloning deeply", function() {
           this.parent.helper();
         }
       }),
-    
       b : {
         enter : function() {
           this.counter = 0;
@@ -113,10 +143,8 @@ test("Cloning deeply", function() {
           this.parent.helper();
         }
       },
-    
       ending : {}
     },
-    
     helper : function() {
       this.counter += 10;
     }

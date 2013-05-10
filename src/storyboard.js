@@ -29,6 +29,16 @@
     // If there are scenes defined, initialize them.
     if (options.scenes) {
 
+      // if the scenes are actually just set to a function, change them
+      // to an enter property
+      _.each(options.scenes, function(scene, name) {
+        if (typeof scene === "function") {
+          options.scenes[name] = {
+            enter : scene
+          };
+        }
+      });
+
       // make sure enter/exit are defined as passthroughs if not present.
       _.each(Storyboard.HANDLERS, function(action) {
         options.scenes[action] = options.scenes[action] || function() { return true; };
