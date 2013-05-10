@@ -97,7 +97,7 @@ module.exports = function(grunt) {
       all : {
         options : {
           urls : [
-            "http://localhost:8000/test/index.html"
+            "http://localhost:8001/test/index.html"
           ]
         }
       }
@@ -107,14 +107,21 @@ module.exports = function(grunt) {
       server: {
         options: {
           port: 8000,
+          base: ".",
+          keepalive:true
+        }
+      },
+      qunit: {
+        options: {
+          port: 8001,
           base: "."
         }
       }
     },
 
     watch : {
-      files : "<config:lint.files>",
-      tasks : "lint qunit"
+      files : ["src/**/*.js", "test/unit/*.js"],
+      tasks : ["jshint","connect:qunit","qunit"]
     },
 
     jshint : {
@@ -190,14 +197,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-contrib-uglify");
   grunt.loadNpmTasks("grunt-contrib-jshint");
   grunt.loadNpmTasks("grunt-contrib-copy");
-  grunt.loadNpmTasks("grunt-contrib-less");
   grunt.loadNpmTasks("grunt-contrib-connect");
   grunt.loadNpmTasks("grunt-contrib-concat");
-  grunt.loadNpmTasks("grunt-contrib-compress");
   grunt.loadNpmTasks("grunt-contrib-clean");
   grunt.loadNpmTasks("grunt-contrib-qunit");
 
   // Default task.
-grunt.registerTask("default", ["jshint", "connect", "qunit", "concat", "uglify", "node"]);
+grunt.registerTask("default", ["jshint", "connect:qunit", "qunit", "concat", "uglify", "node"]);
 };
 
