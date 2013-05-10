@@ -1,34 +1,36 @@
+/* global Miso,module,test,equals */
+
 module("Building complex scenes");
 
 test("scenes names get set when they're attached", function() {
   var myStoryboard = new Miso.Storyboard({});
   var app = new Miso.Storyboard({
-    initial : 'base',
+    initial : "base",
     scenes : { base : myStoryboard }
   });
 
-  equals(app.scenes['base'].name, 'base');
+  equals(app.scenes["base"].name, "base");
 });
 
 test("predefining scenes", function() {
   var order = [];
   var sceneA = new Miso.Storyboard({
     enter : function() {
-      order.push('a');
-    }, 
+      order.push("a");
+    },
     exit : function() {
-      order.push('b');
+      order.push("b");
     }
   });
 
   var sceneB = new Miso.Storyboard({
     enter : function() {
-      order.push('c');
+      order.push("c");
     }
   });
 
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : sceneA,
       loaded : sceneB
@@ -36,8 +38,8 @@ test("predefining scenes", function() {
   });
 
   app.start().then(function() {
-    app.to('loaded');
-    equals(order.join(''), 'abc');
+    app.to("loaded");
+    equals(order.join(""), "abc");
   });
 });
 
@@ -47,37 +49,37 @@ test("Using as engine as a scene", function() {
     scenes : {
       enter : {
         enter : function() {
-          order.push('a');
+          order.push("a");
         },
         exit : function() {
-          order.push('b');
+          order.push("b");
         }
       },
       exit : {
         enter : function() {
-          order.push('c');
+          order.push("c");
         }
       }
     },
     defer : true,
-    initial : 'enter'
+    initial : "enter"
   });
 
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : subStoryboard,
       loaded : {
         enter : function() {
-          order.push('d');
+          order.push("d");
         }
       }
     }
   });
 
   app.start().then(function() {
-    app.to('loaded');
-    equals(order.join(''), 'abcd');
+    app.to("loaded");
+    equals(order.join(""), "abcd");
   });
 
 });
@@ -87,11 +89,11 @@ test("Nesting 3 engines inside each other", function() {
   var order = [];
 
   var inner = new Miso.Storyboard({
-    initial : 'enter',
+    initial : "enter",
     scenes : {
       enter : {
         enter : function() {
-          order.push('c');
+          order.push("c");
         }
       }
     },
@@ -99,11 +101,11 @@ test("Nesting 3 engines inside each other", function() {
   });
 
   var outer = new Miso.Storyboard({
-    initial : 'enter',
+    initial : "enter",
     scenes : {
       enter : {
         enter : function() {
-          order.push('b');
+          order.push("b");
         }
       },
       exit : inner
@@ -112,22 +114,22 @@ test("Nesting 3 engines inside each other", function() {
   });
 
   var app = new Miso.Storyboard({
-    initial : 'a',
+    initial : "a",
     scenes : {
       a : {
         enter : function() {
-          order.push('a');
+          order.push("a");
         }
       },
       b : outer,
       c : {}
     }
   });
- 
+
   app.start().then(function() {
-    app.to('b');
-    app.to('c');
-    equals(order.join(''), 'abc');
+    app.to("b");
+    app.to("c");
+    equals(order.join(""), "abc");
   });
 });
 
@@ -139,7 +141,7 @@ test("applying a context to nested rigs", 6, function() {
 
   var app = new Miso.Storyboard({
     context : context,
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {
         enter : function() {
@@ -153,13 +155,13 @@ test("applying a context to nested rigs", 6, function() {
       },
 
       loaded : new Miso.Storyboard({
-        initial : 'enter',
+        initial : "enter",
         scenes : {
 
           enter : {
             enter : function() {
-              equals(this.a, true, 'true in nested scene');
-              equals(this.b, 96, 'true in nested scene');
+              equals(this.a, true, "true in nested scene");
+              equals(this.b, 96, "true in nested scene");
             }
           },
 
