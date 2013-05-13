@@ -1,3 +1,4 @@
+/* global Miso,module,test,equals */
 module("Context and arguments");
 
 test("extending a scene with additional methods", function() {
@@ -11,31 +12,31 @@ test("extending a scene with additional methods", function() {
     }
   });
 
-  app.to('enter');
+  app.to("enter");
   equals(done, true);
 });
 
 test("handlers have access arguments passed to transition", 4, function() {
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {
         exit : function(a, b) {
           equals(a, 44);
-          equals(b.power, 'full');
+          equals(b.power, "full");
         }
       },
       loaded : {
         enter : function(a, b) {
           equals(a, 44);
-          equals(b.power, 'full');
+          equals(b.power, "full");
         }
       }
     }
   });
 
   app.start().then(function() {
-    app.to('loaded', [44, { power : 'full' }]);
+    app.to("loaded", [44, { power : "full" }]);
   });
 
 });
@@ -48,7 +49,7 @@ test("Applying a context to a simple scene", function() {
 
   var app = new Miso.Storyboard({
     context : context,
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {
         enter : function() {
@@ -80,7 +81,7 @@ test("Applying a context to a simple scene and then switching it", function() {
 
   var app = new Miso.Storyboard({
     context : context1,
-    initial : 'c1',
+    initial : "c1",
     scenes : {
       c1 : {
         enter : function() {
@@ -107,13 +108,13 @@ test("Applying a context to a simple scene and then switching it", function() {
     }
   });
 
-  app.subscribe('c1:exit', function() {
+  app.subscribe("c1:exit", function() {
     app.setContext(context2);
   });
 
   app.start().then(function() {
-    app.to('c2').then(function() {
-      app.to('end');
+    app.to("c2").then(function() {
+      app.to("end");
     });
   });
 
@@ -127,7 +128,7 @@ test("applying a context to nested rigs", 4, function() {
 
   var app = new Miso.Storyboard({
     context : context,
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {
         enter : function() {
@@ -144,7 +145,7 @@ test("applying a context to nested rigs", 4, function() {
   });
 
   app.start().then(function() {
-    app.to('loaded');
+    app.to("loaded");
   });
 
 });

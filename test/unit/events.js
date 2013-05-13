@@ -1,11 +1,12 @@
+/* global Miso,module,test,ok,_,equals */
 module("Basic events");
 
 test("subscriptions", 1, function() {
   var app = _.extend({}, Miso.Events);
-  app.subscribe('test', function() {
+  app.subscribe("test", function() {
     ok(true);
   });
-  app.publish('test');
+  app.publish("test");
 });
 
 test("unsubscription with callback", 2, function() {
@@ -14,11 +15,11 @@ test("unsubscription with callback", 2, function() {
     ok(true);
   }
 
-  app.subscribe('test', tester);
-  app.subscribe('test', tester);
-  app.publish('test');
-  app.unsubscribe('test', tester);
-  app.publish('test');
+  app.subscribe("test", tester);
+  app.subscribe("test", tester);
+  app.publish("test");
+  app.unsubscribe("test", tester);
+  app.publish("test");
 });
 
 test("unsubscription with token", 1, function() {
@@ -27,10 +28,10 @@ test("unsubscription with token", 1, function() {
     ok(true);
   }
 
-  var token = app.subscribe('test', tester);
-  app.publish('test');
-  app.unsubscribe('test', { token : token });
-  app.publish('test');
+  var token = app.subscribe("test", tester);
+  app.publish("test");
+  app.unsubscribe("test", { token : token });
+  app.publish("test");
 });
 
 test("subscribeOnce", 1, function() {
@@ -39,27 +40,26 @@ test("subscribeOnce", 1, function() {
     ok(true);
   }
 
-  app.subscribeOnce('test', tester);
-  app.publish('test');
-  app.publish('test');
+  app.subscribeOnce("test", tester);
+  app.publish("test");
+  app.publish("test");
 });
 
 test("priority", function() {
   var app = _.extend({}, Miso.Events);
   var output = [];
-  app.subscribe('test', function() {
-    output.push('d');
+  app.subscribe("test", function() {
+    output.push("d");
   }, { priority : -10 });
-  app.subscribe('test', function() {
-    output.push('c');
+  app.subscribe("test", function() {
+    output.push("c");
   }, { priority : 0 });
-  app.subscribe('test', function() {
-    output.push('a');
+  app.subscribe("test", function() {
+    output.push("a");
   }, { priority : 100 });
-  app.subscribe('test', function() {
-    output.push('b');
+  app.subscribe("test", function() {
+    output.push("b");
   }, { priority : 10 });
-  
-  app.publish('test');
-  equals(output.join(''), 'abcd');
+  app.publish("test");
+  equals(output.join(""), "abcd");
 });

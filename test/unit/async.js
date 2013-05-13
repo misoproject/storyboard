@@ -1,9 +1,10 @@
+/* global Miso,module,test,equals,ok,stop,start,_ */
 module("Asynchronous tests");
 
 test("Asynchronous enter", function() {
   var done;
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {},
       loaded : {
@@ -14,12 +15,12 @@ test("Asynchronous enter", function() {
     }
   });
   app.start().then(function() {
-    app.to('loaded');
-    ok(app.scene('unloaded'), "should still be unloaded during transition");
+    app.to("loaded");
+    ok(app.scene("unloaded"), "should still be unloaded during transition");
     ok(app.inTransition(), "should be in transition");
-    ok(app.to('loaded').state(),'rejected', "can't start a second transition");
+    ok(app.to("loaded").state(),"rejected", "can't start a second transition");
     done();
-    ok(app.scene('loaded'));
+    ok(app.scene("loaded"));
     ok(!app.inTransition(), "should no longer be in transition");
   });
 });
@@ -27,7 +28,7 @@ test("Asynchronous enter", function() {
 test("Cancelling a transition in progress", 4, function() {
   var done;
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {
         exit : function() {
@@ -39,14 +40,14 @@ test("Cancelling a transition in progress", 4, function() {
   });
 
   app.start().then(function() {
-    var promise = app.to('loaded');
-    ok(app.inTransition(), 'entered transition');
+    var promise = app.to("loaded");
+    ok(app.inTransition(), "entered transition");
     promise.fail(function() {
       ok(true, "transition promise rejected");
     });
     app.cancelTransition();
-    ok(!app.inTransition(), 'no longer in transition');
-    promise = app.to('loaded');
+    ok(!app.inTransition(), "no longer in transition");
+    promise = app.to("loaded");
     promise.done(function() {
       ok(true, "second attempt succeeds");
     });
@@ -57,31 +58,31 @@ test("Cancelling a transition in progress", 4, function() {
 test("async handlers are executed in the correct order", 1, function() {
   var order = [];
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {
         exit: function() {
           var done = this.async();
           setTimeout(function() {
-            order.push('a');
+            order.push("a");
             done();
           }, 100);
         }
       },
       loaded : {
         enter : function() {
-          order.push('b');
+          order.push("b");
         }
       }
     }
   });
 
   app.start().then(function() {
-    app.to('loaded');
+    app.to("loaded");
     stop();
     setTimeout(function() {
       start();
-      equals(order.join(''), 'ab', 'handlers fired in the corect order');
+      equals(order.join(""), "ab", "handlers fired in the corect order");
     }, 200);
   });
 });
@@ -89,7 +90,7 @@ test("async handlers are executed in the correct order", 1, function() {
 test("async fail on enter stops transition", 4, function() {
   var pass;
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {},
       loaded : {
@@ -101,21 +102,21 @@ test("async fail on enter stops transition", 4, function() {
   });
 
   app.start().then(function() {
-    var promise = app.to('loaded'); 
+    var promise = app.to("loaded");
     ok(app.inTransition());
     pass(false);
     promise.fail(function() {
       ok(true);
     });
     ok(!app.inTransition());
-    equals(app.scene(), 'unloaded');
+    equals(app.scene(), "unloaded");
   });
 });
 
 test("async fail on exit stops transition", 4, function() {
   var pass;
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {
         exit : function() {
@@ -127,20 +128,20 @@ test("async fail on exit stops transition", 4, function() {
   });
 
   app.start().then(function() {
-    var promise = app.to('loaded'); 
+    var promise = app.to("loaded");
     ok(app.inTransition());
     pass(false);
     promise.fail(function() {
       ok(true);
     });
     ok(!app.inTransition());
-    equals(app.scene(), 'unloaded');
+    equals(app.scene(), "unloaded");
   });
 });
 
 test("passing a custom deferred to to", 1, function() {
   var app = new Miso.Storyboard({
-    initial : 'unloaded',
+    initial : "unloaded",
     scenes : {
       unloaded : {},
       loaded : {}
@@ -152,6 +153,6 @@ test("passing a custom deferred to to", 1, function() {
     done.done(function() {
       ok(true);
     });
-    app.to('loaded', [], done);
+    app.to("loaded", [], done);
   });
 });

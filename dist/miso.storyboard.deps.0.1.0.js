@@ -1,4 +1,11 @@
 /**
+* Miso.Storyboard - v0.1.0 - 5/10/2013
+* http://github.com/misoproject/storyboard
+* Copyright (c) 2013 Alex Graul, Irene Ros, Rich Harris;
+* Dual Licensed: MIT, GPL
+* https://github.com/misoproject/storyboard/blob/master/LICENSE-MIT 
+* https://github.com/misoproject/storyboard/blob/master/LICENSE-GPL 
+*//**
  * @license
  * Lo-Dash 1.2.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modern -o ./dist/lodash.js`
@@ -5262,3 +5269,908 @@
     window._ = _;
   }
 }(this));
+(function(root){
+
+  // Let's borrow a couple of things from Underscore that we'll need
+
+  // _.each
+  var breaker = {},
+      AP = Array.prototype,
+      OP = Object.prototype,
+
+      hasOwn = OP.hasOwnProperty,
+      toString = OP.toString,
+      forEach = AP.forEach,
+      indexOf = AP.indexOf,
+      slice = AP.slice;
+
+  var _each = function( obj, iterator, context ) {
+    var key, i, l;
+
+    if ( !obj ) {
+      return;
+    }
+    if ( forEach && obj.forEach === forEach ) {
+      obj.forEach( iterator, context );
+    } else if ( obj.length === +obj.length ) {
+      for ( i = 0, l = obj.length; i < l; i++ ) {
+        if ( i in obj && iterator.call( context, obj[i], i, obj ) === breaker ) {
+          return;
+        }
+      }
+    } else {
+      for ( key in obj ) {
+        if ( hasOwn.call( obj, key ) ) {
+          if ( iterator.call( context, obj[key], key, obj) === breaker ) {
+            return;
+          }
+        }
+      }
+    }
+  };
+
+  // _.isFunction
+  var _isFunction = function( obj ) {
+    return !!(obj && obj.constructor && obj.call && obj.apply);
+  };
+
+  // _.extend
+  var _extend = function( obj ) {
+
+    _each( slice.call( arguments, 1), function( source ) {
+      var prop;
+
+      for ( prop in source ) {
+        if ( source[prop] !== void 0 ) {
+          obj[ prop ] = source[ prop ];
+        }
+      }
+    });
+    return obj;
+  };
+
+  // $.inArray
+  var _inArray = function( elem, arr, i ) {
+    var len;
+
+    if ( arr ) {
+      if ( indexOf ) {
+        return indexOf.call( arr, elem, i );
+      }
+
+      len = arr.length;
+      i = i ? i < 0 ? Math.max( 0, len + i ) : i : 0;
+
+      for ( ; i < len; i++ ) {
+        // Skip accessing in sparse arrays
+        if ( i in arr && arr[ i ] === elem ) {
+          return i;
+        }
+      }
+    }
+
+    return -1;
+  };
+
+  // And some jQuery specific helpers
+
+  var class2type = {};
+
+  // Populate the class2type map
+  _each("Boolean Number String Function Array Date RegExp Object".split(" "), function(name, i) {
+    class2type[ "[object " + name + "]" ] = name.toLowerCase();
+  });
+
+  var _type = function( obj ) {
+    return obj == null ?
+      String( obj ) :
+      class2type[ toString.call(obj) ] || "object";
+  };
+
+  // Now start the jQuery-cum-Underscore implementation. Some very
+  // minor changes to the jQuery source to get this working.
+
+  // Internal Deferred namespace
+  var _d = {};
+  // String to Object options format cache
+  var optionsCache = {};
+
+  // Convert String-formatted options into Object-formatted ones and store in cache
+  function createOptions( options ) {
+    var object = optionsCache[ options ] = {};
+    _each( options.split( /\s+/ ), function( flag ) {
+      object[ flag ] = true;
+    });
+    return object;
+  }
+
+  _d.Callbacks = function( options ) {
+
+    // Convert options from String-formatted to Object-formatted if needed
+    // (we check in cache first)
+    options = typeof options === "string" ?
+      ( optionsCache[ options ] || createOptions( options ) ) :
+      _extend( {}, options );
+
+    var // Last fire value (for non-forgettable lists)
+      memory,
+      // Flag to know if list was already fired
+      fired,
+      // Flag to know if list is currently firing
+      firing,
+      // First callback to fire (used internally by add and fireWith)
+      firingStart,
+      // End of the loop when firing
+      firingLength,
+      // Index of currently firing callback (modified by remove if needed)
+      firingIndex,
+      // Actual callback list
+      list = [],
+      // Stack of fire calls for repeatable lists
+      stack = !options.once && [],
+      // Fire callbacks
+      fire = function( data ) {
+        memory = options.memory && data;
+        fired = true;
+        firingIndex = firingStart || 0;
+        firingStart = 0;
+        firingLength = list.length;
+        firing = true;
+        for ( ; list && firingIndex < firingLength; firingIndex++ ) {
+          if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {
+            memory = false; // To prevent further calls using add
+            break;
+          }
+        }
+        firing = false;
+        if ( list ) {
+          if ( stack ) {
+            if ( stack.length ) {
+              fire( stack.shift() );
+            }
+          } else if ( memory ) {
+            list = [];
+          } else {
+            self.disable();
+          }
+        }
+      },
+      // Actual Callbacks object
+      self = {
+        // Add a callback or a collection of callbacks to the list
+        add: function() {
+          if ( list ) {
+            // First, we save the current length
+            var start = list.length;
+            (function add( args ) {
+              _each( args, function( arg ) {
+                var type = _type( arg );
+                if ( type === "function" && ( !options.unique || !self.has( arg ) ) ) {
+                  list.push( arg );
+                } else if ( arg && arg.length && type !== "string" ) {
+                  // Inspect recursively
+                  add( arg );
+                }
+              });
+            })( arguments );
+            // Do we need to add the callbacks to the
+            // current firing batch?
+            if ( firing ) {
+              firingLength = list.length;
+            // With memory, if we're not firing then
+            // we should call right away
+            } else if ( memory ) {
+              firingStart = start;
+              fire( memory );
+            }
+          }
+          return this;
+        },
+        // Remove a callback from the list
+        remove: function() {
+          if ( list ) {
+            _each( arguments, function( arg ) {
+              var index;
+              while( ( index = _inArray( arg, list, index ) ) > -1 ) {
+                list.splice( index, 1 );
+                // Handle firing indexes
+                if ( firing ) {
+                  if ( index <= firingLength ) {
+                    firingLength--;
+                  }
+                  if ( index <= firingIndex ) {
+                    firingIndex--;
+                  }
+                }
+              }
+            });
+          }
+          return this;
+        },
+        // Control if a given callback is in the list
+        has: function( fn ) {
+          return _inArray( fn, list ) > -1;
+        },
+        // Remove all callbacks from the list
+        empty: function() {
+          list = [];
+          return this;
+        },
+        // Have the list do nothing anymore
+        disable: function() {
+          list = stack = memory = undefined;
+          return this;
+        },
+        // Is it disabled?
+        disabled: function() {
+          return !list;
+        },
+        // Lock the list in its current state
+        lock: function() {
+          stack = undefined;
+          if ( !memory ) {
+            self.disable();
+          }
+          return this;
+        },
+        // Is it locked?
+        locked: function() {
+          return !stack;
+        },
+        // Call all callbacks with the given context and arguments
+        fireWith: function( context, args ) {
+          args = args || [];
+          args = [ context, args.slice ? args.slice() : args ];
+          if ( list && ( !fired || stack ) ) {
+            if ( firing ) {
+              stack.push( args );
+            } else {
+              fire( args );
+            }
+          }
+          return this;
+        },
+        // Call all the callbacks with the given arguments
+        fire: function() {
+          self.fireWith( this, arguments );
+          return this;
+        },
+        // To know if the callbacks have already been called at least once
+        fired: function() {
+          return !!fired;
+        }
+      };
+
+    return self;
+  };
+
+  _d.Deferred = function( func ) {
+
+    var tuples = [
+        // action, add listener, listener list, final state
+        [ "resolve", "done", _d.Callbacks("once memory"), "resolved" ],
+        [ "reject", "fail", _d.Callbacks("once memory"), "rejected" ],
+        [ "notify", "progress", _d.Callbacks("memory") ]
+      ],
+      state = "pending",
+      promise = {
+        state: function() {
+          return state;
+        },
+        always: function() {
+          deferred.done( arguments ).fail( arguments );
+          return this;
+        },
+        then: function( /* fnDone, fnFail, fnProgress */ ) {
+          var fns = arguments;
+          return _d.Deferred(function( newDefer ) {
+            _each( tuples, function( tuple, i ) {
+              var action = tuple[ 0 ],
+                fn = fns[ i ];
+              // deferred[ done | fail | progress ] for forwarding actions to newDefer
+              deferred[ tuple[1] ]( _isFunction( fn ) ?
+                function() {
+                  var returned = fn.apply( this, arguments );
+                  if ( returned && _isFunction( returned.promise ) ) {
+                    returned.promise()
+                      .done( newDefer.resolve )
+                      .fail( newDefer.reject )
+                      .progress( newDefer.notify );
+                  } else {
+                    newDefer[ action + "With" ]( this === deferred ? newDefer : this, [ returned ] );
+                  }
+                } :
+                newDefer[ action ]
+              );
+            });
+            fns = null;
+          }).promise();
+        },
+        // Get a promise for this deferred
+        // If obj is provided, the promise aspect is added to the object
+        promise: function( obj ) {
+          return typeof obj === "object" ? _extend( obj, promise ) : promise;
+        }
+      },
+      deferred = {};
+
+    // Keep pipe for back-compat
+    promise.pipe = promise.then;
+
+    // Add list-specific methods
+    _each( tuples, function( tuple, i ) {
+      var list = tuple[ 2 ],
+        stateString = tuple[ 3 ];
+
+      // promise[ done | fail | progress ] = list.add
+      promise[ tuple[1] ] = list.add;
+
+      // Handle state
+      if ( stateString ) {
+        list.add(function() {
+          // state = [ resolved | rejected ]
+          state = stateString;
+
+        // [ reject_list | resolve_list ].disable; progress_list.lock
+        }, tuples[ i ^ 1 ][ 2 ].disable, tuples[ 2 ][ 2 ].lock );
+      }
+
+      // deferred[ resolve | reject | notify ] = list.fire
+      deferred[ tuple[0] ] = list.fire;
+      deferred[ tuple[0] + "With" ] = list.fireWith;
+    });
+
+    // Make the deferred a promise
+    promise.promise( deferred );
+
+    // Call given func if any
+    if ( func ) {
+      func.call( deferred, deferred );
+    }
+
+    // All done!
+    return deferred;
+  };
+
+    // Deferred helper
+    _d.when = function( subordinate /* , ..., subordinateN */ ) {
+    var i = 0,
+      resolveValues = slice.call( arguments ),
+      length = resolveValues.length,
+
+      // the count of uncompleted subordinates
+      remaining = length !== 1 || ( subordinate && _isFunction( subordinate.promise ) ) ? length : 0,
+
+      // the master Deferred. If resolveValues consist of only a single Deferred, just use that.
+      deferred = remaining === 1 ? subordinate : _d.Deferred(),
+
+      // Update function for both resolve and progress values
+      updateFunc = function( i, contexts, values ) {
+        return function( value ) {
+          contexts[ i ] = this;
+          values[ i ] = arguments.length > 1 ? slice.call( arguments ) : value;
+          if( values === progressValues ) {
+            deferred.notifyWith( contexts, values );
+          } else if ( !( --remaining ) ) {
+            deferred.resolveWith( contexts, values );
+          }
+        };
+      },
+
+      progressValues, progressContexts, resolveContexts;
+
+    // add listeners to Deferred subordinates; treat others as resolved
+    if ( length > 1 ) {
+      progressValues = new Array( length );
+      progressContexts = new Array( length );
+      resolveContexts = new Array( length );
+      for ( ; i < length; i++ ) {
+        if ( resolveValues[ i ] && _isFunction( resolveValues[ i ].promise ) ) {
+          resolveValues[ i ].promise()
+            .done( updateFunc( i, resolveContexts, resolveValues ) )
+            .fail( deferred.reject )
+            .progress( updateFunc( i, progressContexts, progressValues ) );
+        } else {
+          --remaining;
+        }
+      }
+    }
+
+    // if we're not waiting on anything, resolve the master
+    if ( !remaining ) {
+      deferred.resolveWith( resolveContexts, resolveValues );
+    }
+
+    return deferred.promise();
+  };
+
+  // Try exporting as a Common.js Module
+  if ( typeof module !== "undefined" && module.exports ) {
+    module.exports = _d;
+
+  // Or mixin to Underscore.js
+  } else if ( typeof root._ !== "undefined" ) {
+    root._.mixin(_d);
+
+  // Or assign it to window._
+  } else {
+    root._ = _d;
+  }
+
+})(this);
+
+/**
+* Miso.Storyboard - v0.1.0 - 5/10/2013
+* http://github.com/misoproject/storyboard
+* Copyright (c) 2013 Alex Graul, Irene Ros, Rich Harris;
+* Dual Licensed: MIT, GPL
+* https://github.com/misoproject/storyboard/blob/master/LICENSE-MIT 
+* https://github.com/misoproject/storyboard/blob/master/LICENSE-GPL 
+*//* global _ */
+(function(global, _) {
+
+  var Miso = global.Miso = (global.Miso || {});
+
+  /**
+  * Miso Events is a small set of methods that can be mixed into any object
+  * to make it evented. It allows one to then subscribe to specific object events,
+  * to publish events, unsubscribe and subscribeOnce.
+  */
+  Miso.Events = {
+
+
+    /**
+    * Triggers a specific event and passes any additional arguments
+    * to the callbacks subscribed to that event.
+    * Params:
+    *   name - the name of the event to trigger
+    *   .* - any additional arguments to pass to callbacks.
+    */
+    publish : function(name) {
+      var args = _.toArray(arguments);
+      args.shift();
+
+      if (this._events && this._events[name]) {
+        _.each(this._events[name], function(subscription) {
+          subscription.callback.apply(subscription.context || this, args);
+        }, this);
+      }
+      return this;
+    },
+
+    /**
+    * Allows subscribing on an evented object to a specific name.
+    * Provide a callback to trigger.
+    * Params:
+    *   name - event to subscribe to
+    *   callback - callback to trigger
+    *   options - optional arguments
+    *     priority - allows rearranging of existing callbacks based on priority
+    *     context - allows attaching diff context to callback
+    *     token - allows callback identification by token.
+    */
+    subscribe : function(name, callback, options) {
+      options = options || {};
+      this._events = this._events || {};
+      this._events[name] = this._events[name] || [];
+
+      var subscription = {
+        callback : callback,
+        priority : options.priority || 0,
+        token : options.token || _.uniqueId("t"),
+        context : options.context || this
+      };
+      var position;
+      _.each(this._events[name], function(event, index) {
+        if (!_.isUndefined(position)) { return; }
+        if (event.priority <= subscription.priority) {
+          position = index;
+        }
+      });
+
+      this._events[name].splice(position, 0, subscription);
+      return subscription.token;
+    },
+
+    /**
+    * Allows subscribing to an event once. When the event is triggered
+    * this subscription will be removed.
+    * Params:
+    *   name - name of event
+    *   callback - The callback to trigger
+    */
+    subscribeOnce : function(name, callback) {
+      this._events = this._events || {};
+      var token = _.uniqueId("t");
+      return this.subscribe(name, function() {
+        this.unsubscribe(name, { token : token });
+        callback.apply(this, arguments);
+      }, this, token);
+    },
+
+    /**
+    * Allows unsubscribing from a specific event
+    * Params:
+    *   name - event to unsubscribe from
+    *   identifier - callback to remove OR token.
+    */
+    unsubscribe : function(name, identifier) {
+
+      if (_.isUndefined(this._events[name])) { return this; }
+
+      if (_.isFunction(identifier)) {
+        this._events[name] = _.reject(this._events[name], function(b) {
+          return b.callback === identifier;
+        });
+
+      } else if ( _.isString(identifier)) {
+        this._events[name] = _.reject(this._events[name], function(b) {
+          return b.token === identifier;
+        });
+
+      } else {
+        this._events[name] = [];
+      }
+      return this;
+    }
+
+  };
+
+}(this, _));
+
+/* global _ */
+
+(function(global, _) {
+
+  var Miso = global.Miso = (global.Miso || {});
+
+  /**
+  * Creates a new storyboard.
+  * Params:
+  *   options - various arguments
+  *     context - optional. Set a different context for the storyboard.
+  *               by default it's the scene that is being executed.
+  *     
+  */
+  var Storyboard = Miso.Storyboard = function(options) {
+
+    options = options || {};
+
+    // save all options so we can clone this later...
+    this._originalOptions = options;
+
+    // Set up the context for this storyboard. This will be
+    // available as "this" inside the transition functions.
+    this._context = options.context || this;
+
+    // Assign custom id to the storyboard.
+    this._id = _.uniqueId("scene");
+
+    // If there are scenes defined, initialize them.
+    if (options.scenes) {
+
+      // if the scenes are actually just set to a function, change them
+      // to an enter property
+      _.each(options.scenes, function(scene, name) {
+        if (typeof scene === "function") {
+          options.scenes[name] = {
+            enter : scene
+          };
+        }
+      });
+
+      // make sure enter/exit are defined as passthroughs if not present.
+      _.each(Storyboard.HANDLERS, function(action) {
+        options.scenes[action] = options.scenes[action] || function() { return true; };
+      });
+
+      // Convert the scenes to actually nested storyboards. A "scene"
+      // is really just a storyboard of one action with no child scenes.
+      this._buildScenes(options.scenes);
+
+      // Save the initial scene that we will start from. When .start is called
+      // on the storyboard, this is the scene we transition to.
+      this._initial = options.initial;
+
+      // Transition function given that there are child scenes.
+      this.to = children_to;
+
+    } else {
+
+      // This is a terminal storyboad in that it doesn't actually have any child
+      // scenes, just its own enter and exit functions.
+
+      this.handlers = {};
+
+      _.each(Storyboard.HANDLERS, function(action) {
+
+        // save the enter and exit functions and if they don't exist, define them.
+        options[action] = options[action] || function() { return true; };
+
+        // wrap functions so they can declare themselves as optionally
+        // asynchronous without having to worry about deferred management.
+        this.handlers[action] = wrap(options[action], action);
+
+      }, this);
+
+      // Transition function given that this is a terminal storyboard.
+      this.to = leaf_to;
+    }
+
+
+    // Iterate over all the properties defiend in the options and as long as they 
+    // are not on a black list, save them on the actual scene. This allows us to define
+    // helper methods that are not going to be wrapped (and thus instrumented with 
+    // any deferred and async behavior.)
+    _.each(options, function(prop, name) {
+
+      if (_.indexOf(Storyboard.BLACKLIST, name) !== -1) {
+        return;
+      }
+
+      if (_.isFunction(prop)) {
+        this[name] = (function(contextOwner) {
+          return function() {
+            prop.apply(contextOwner._context || contextOwner, arguments);
+          };
+        }(this));
+      } else {
+        this[name] = prop;
+      }
+
+    }, this);
+
+  };
+
+  Storyboard.HANDLERS = ["enter","exit"];
+  Storyboard.BLACKLIST = ["_id", "initial","scenes","enter","exit","context","_current"];
+
+  _.extend(Storyboard.prototype, Miso.Events, {
+
+    /**
+    * Allows for cloning of a storyboard
+    * Returns:
+    *   s - a new Miso.Storyboard
+    */
+    clone : function() {
+
+      // clone nested storyboard
+      if (this.scenes) {
+        _.each(this._originalOptions.scenes, function(scene, name) {
+          if (scene instanceof Miso.Storyboard) {
+            this._originalOptions.scenes[name] = scene.clone();
+          }
+        }, this);
+      }
+
+      return new Miso.Storyboard(this._originalOptions);
+    },
+
+    /**
+    * Attach a new scene to an existing storyboard.
+    * Params:
+    *   name - The name of the scene
+    *   parent - The storyboard to attach this current scene to.
+    */
+    attach : function(name, parent) {
+
+      this.name = name;
+      this.parent = parent;
+
+      // if the parent has a custom context the child should inherit it
+      if (parent._context && (parent._context._id !== parent._id)) {
+
+        this._context = parent._context;
+        if (this.scenes) {
+          _.each(this.scenes , function(scene) {
+            scene.attach(scene.name, this);
+          }, this);
+        }
+      }
+      return this;
+    },
+
+    /**
+    * Instruct a storyboard to kick off its initial scene.
+    * This returns a deferred object just like all the .to calls.
+    * If the initial scene is asynchronous, you will need to define a .then
+    * callback to wait on the start scene to end its enter transition.
+    */
+    start : function() {
+      // if we've already started just return a happily resoved deferred
+      if (typeof this._current !== "undefined") {
+        return _.Deferred().resolve();
+      } else {
+        return this.to(this._initial);
+      }
+    },
+
+    /**
+    * Cancels a transition in action. This doesn't actually kill the function
+    * that is currently in play! It does reject the deferred one was awaiting
+    * from that transition.
+    */
+    cancelTransition : function() {
+      this._complete.reject();
+      this._transitioning = false;
+    },
+
+    /**
+    * Returns the current scene.
+    * Returns:
+    *   scene - current scene name, or null.
+    */
+    scene : function() {
+      return this._current ? this._current.name : null;
+    },
+
+    /**
+    * Checks if the current scene is of a specific name.
+    * Params:
+    *   scene - scene to check as to whether it is the current scene
+    * Returns:
+    *   true if it is, false otherwise.
+    */
+    is : function( scene ) {
+      return (scene === this._current.name);
+    },
+
+    /**
+    * Returns true if storyboard is in the middle of a transition.
+    */
+    inTransition : function() {
+      return (this._transitioning === true);
+    },
+
+    /**
+    * Allows the changing of context. This will alter what "this"
+    * will be set to inside the transition methods.
+    */
+    setContext : function(context) {
+      this._context = context;
+      if (this.scenes) {
+        _.each(this.scenes, function(scene) {
+          scene.setContext(context);
+        });
+      }
+    },
+
+    _buildScenes : function( scenes ) {
+      this.scenes = {};
+      _.each(scenes, function(scene, name) {
+        this.scenes[name] = scene instanceof Miso.Storyboard ? scene : new Miso.Storyboard(scene);
+        this.scenes[name].attach(name, this);
+      }, this);
+    }
+  });
+
+  // Used as the to function to scenes which do not have children
+  // These scenes only have their own enter and exit.
+  function leaf_to( sceneName, argsArr, deferred ) {
+
+    this._transitioning = true;
+    var complete = this._complete = deferred || _.Deferred(),
+    args = argsArr ? argsArr : [],
+    handlerComplete = _.Deferred()
+      .done(_.bind(function() {
+        this._transitioning = false;
+        this._current = sceneName;
+        complete.resolve();
+      }, this))
+      .fail(_.bind(function() {
+        this._transitioning = false;
+        complete.reject();
+      }, this));
+
+    this.handlers[sceneName].call(this._context, args, handlerComplete);
+
+    return complete.promise();
+  }
+
+    // Used as the function to scenes that do have children.
+  function children_to( sceneName, argsArr, deferred ) {
+    var toScene = this.scenes[sceneName],
+        fromScene = this._current,
+        args = argsArr ? argsArr : [],
+        complete = this._complete = deferred || _.Deferred(),
+        exitComplete = _.Deferred(),
+        enterComplete = _.Deferred(),
+        publish = _.bind(function(name, isExit) {
+          var sceneName = isExit ? fromScene : toScene;
+          sceneName = sceneName ? sceneName.name : "";
+
+          this.publish(name, fromScene, toScene);
+          if (name !== "start" || name !== "end") {
+            this.publish(sceneName + ":" + name);
+          }
+
+        }, this),
+        bailout = _.bind(function() {
+          this._transitioning = false;
+          this._current = fromScene;
+          publish("fail");
+          complete.reject();
+        }, this),
+        success = _.bind(function() {
+          publish("enter");
+          this._transitioning = false;
+          this._current = toScene;
+          publish("end");
+          complete.resolve();
+        }, this);
+
+
+    if (!toScene) {
+      throw "Scene \"" + sceneName + "\" not found!";
+    }
+
+    // we in the middle of a transition?
+    if (this._transitioning) {
+      return complete.reject();
+    }
+
+    publish("start");
+
+    this._transitioning = true;
+
+    if (fromScene) {
+
+      // we are coming from a scene, so transition out of it.
+      fromScene.to("exit", args, exitComplete);
+      exitComplete.done(function() {
+        publish("exit", true);
+      });
+
+    } else {
+      exitComplete.resolve();
+    }
+
+    // when we're done exiting, enter the next set
+    _.when(exitComplete).then(function() {
+
+      toScene.to(toScene._initial || "enter", args, enterComplete);
+
+    }).fail(bailout);
+
+    enterComplete
+      .then(success)
+      .fail(bailout);
+
+    return complete.promise();
+  }
+
+  function wrap(func, name) {
+
+    //don't wrap non-functions
+    if ( !_.isFunction(func)) { return func; }
+    //don't wrap private functions
+    if ( /^_/.test(name) ) { return func; }
+    //don't wrap wrapped functions
+    if (func.__wrapped) { return func; }
+
+    var wrappedFunc = function(args, deferred) {
+      var async = false,
+          result;
+
+          deferred = deferred || _.Deferred();
+
+          this.async = function() {
+            async = true;
+            return function(pass) {
+              return (pass !== false) ? deferred.resolve() : deferred.reject();
+            };
+          };
+
+      result = func.apply(this, args);
+      this.async = undefined;
+      if (!async) {
+        return (result !== false) ? deferred.resolve() : deferred.reject();
+      }
+      return deferred.promise();
+    };
+
+    wrappedFunc.__wrapped = true;
+    return wrappedFunc;
+  }
+
+}(this, _));

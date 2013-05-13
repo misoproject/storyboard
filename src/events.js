@@ -1,3 +1,4 @@
+/* global _ */
 (function(global, _) {
 
   var Miso = global.Miso = (global.Miso || {});
@@ -47,8 +48,8 @@
 
       var subscription = {
         callback : callback,
-        priority : options.priority || 0, 
-        token : options.token || _.uniqueId('t'),
+        priority : options.priority || 0,
+        token : options.token || _.uniqueId("t"),
         context : options.context || this
       };
       var position;
@@ -72,7 +73,7 @@
     */
     subscribeOnce : function(name, callback) {
       this._events = this._events || {};
-      var token = _.uniqueId('t');
+      var token = _.uniqueId("t");
       return this.subscribe(name, function() {
         this.unsubscribe(name, { token : token });
         callback.apply(this, arguments);
