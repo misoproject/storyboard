@@ -2,16 +2,23 @@
 
 (function(global, _) {
 
+  /**
+   * @namespace
+   */
   var Miso = global.Miso = (global.Miso || {});
 
   /**
-  * Creates a new storyboard.
-  * Params:
-  *   options - various arguments
-  *     context - optional. Set a different context for the storyboard.
-  *               by default it's the scene that is being executed.
-  *     
-  */
+   * Creates a new storyboard.
+   *
+   * @constructor
+   * @name Storyboard
+   * @memberof Miso
+   *
+   * @param {Object} [options]
+   * @param {Object} [options.context] - Set a different context for the
+   *                                     storyboard.  by default it's the scene
+   *                                     that is being executed.
+   */
   var Storyboard = Miso.Storyboard = function(options) {
 
     options = options || {};
@@ -105,13 +112,17 @@
   Storyboard.HANDLERS = ["enter","exit"];
   Storyboard.BLACKLIST = ["_id", "initial","scenes","enter","exit","context","_current"];
 
-  _.extend(Storyboard.prototype, Miso.Events, {
+  _.extend(Storyboard.prototype, Miso.Events,
+    /**
+     * @lends Miso.Storyboard.prototype
+     */
+    {
 
     /**
-    * Allows for cloning of a storyboard
-    * Returns:
-    *   s - a new Miso.Storyboard
-    */
+     * Allows for cloning of a storyboard
+     *
+     * @returns {Miso.Storyboard}
+     */
     clone : function() {
 
       // clone nested storyboard
@@ -127,11 +138,12 @@
     },
 
     /**
-    * Attach a new scene to an existing storyboard.
-    * Params:
-    *   name - The name of the scene
-    *   parent - The storyboard to attach this current scene to.
-    */
+     * Attach a new scene to an existing storyboard.
+     *
+     * @param {String} name - The name of the scene
+     * @param {Miso.Storyboard} parent - The storyboard to attach this current
+     *                                   scene to.
+     */
     attach : function(name, parent) {
 
       this.name = name;
@@ -151,11 +163,12 @@
     },
 
     /**
-    * Instruct a storyboard to kick off its initial scene.
-    * This returns a deferred object just like all the .to calls.
-    * If the initial scene is asynchronous, you will need to define a .then
-    * callback to wait on the start scene to end its enter transition.
-    */
+     * Instruct a storyboard to kick off its initial scene.
+     * If the initial scene is asynchronous, you will need to define a .then
+     * callback to wait on the start scene to end its enter transition.
+     *
+     * @returns {Deferred}
+     */
     start : function() {
       // if we've already started just return a happily resoved deferred
       if (typeof this._current !== "undefined") {
@@ -166,46 +179,47 @@
     },
 
     /**
-    * Cancels a transition in action. This doesn't actually kill the function
-    * that is currently in play! It does reject the deferred one was awaiting
-    * from that transition.
-    */
+     * Cancels a transition in action. This doesn't actually kill the function
+     * that is currently in play! It does reject the deferred one was awaiting
+     * from that transition.
+     */
     cancelTransition : function() {
       this._complete.reject();
       this._transitioning = false;
     },
 
     /**
-    * Returns the current scene.
-    * Returns:
-    *   scene - current scene name, or null.
-    */
+     * Returns the current scene.
+     *
+     * @returns {String|null} current scene name
+     */
     scene : function() {
       return this._current ? this._current.name : null;
     },
 
     /**
-    * Checks if the current scene is of a specific name.
-    * Params:
-    *   scene - scene to check as to whether it is the current scene
-    * Returns:
-    *   true if it is, false otherwise.
-    */
+     * Checks if the current scene is of a specific name.
+     *
+     * @param {String} scene - scene to check as to whether it is the current
+     *                         scene
+     *
+     * @returns {Boolean} true if it is, false otherwise.
+     */
     is : function( scene ) {
       return (scene === this._current.name);
     },
 
     /**
-    * Returns true if storyboard is in the middle of a transition.
-    */
+     * @returns {Boolean} true if storyboard is in the middle of a transition.
+     */
     inTransition : function() {
       return (this._transitioning === true);
     },
 
     /**
-    * Allows the changing of context. This will alter what "this"
-    * will be set to inside the transition methods.
-    */
+     * Allows the changing of context. This will alter what "this" will be set
+     * to inside the transition methods.
+     */
     setContext : function(context) {
       this._context = context;
       if (this.scenes) {
