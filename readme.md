@@ -1,8 +1,8 @@
 # Miso.Storyboard #
 
-Miso.Storyboard is a control flow library for organising your interactive content as scenes, making it easy to 
-handle complex transitions and manage state. Each scene can have handlers for how it should act 
-when it becomes the active scene and when it is no longer the active scene. Storyboards nest, 
+Miso.Storyboard is a control flow library for organising your interactive content as scenes, making it easy to
+handle complex transitions and manage state. Each scene can have handlers for how it should act
+when it becomes the active scene and when it is no longer the active scene. Storyboards nest,
 in that every single scene can actually be its own complex storyboard.
 
 ```javascript
@@ -29,10 +29,10 @@ app.to('loaded');
 ## Handling Asynchronous transitions ##
 
 Every scene has two handlers `enter` and `exit`, which are called when the
-scene is entered and exited respectively. Both of these handlers can be made to be asynchronous, making 
-it possible to use them to handle complex animated transions in a relatively simple manner. Handlers 
-are made asynchronous by calling a `this.async` in the handler. This will return a function when can 
-be called when the final callback is complete, this is called the resolution function. The `to` function 
+scene is entered and exited respectively. Both of these handlers can be made to be asynchronous, making
+it possible to use them to handle complex animated transions in a relatively simple manner. Handlers
+are made asynchronous by calling a `this.async` in the handler. This will return a function when can
+be called when the final callback is complete, this is called the resolution function. The `to` function
 will in turn then return a deferred that will not resolve (or reject) until all the handlers involved are complete.
 
 ```javascript
@@ -82,7 +82,7 @@ complete.done(function() {
 });
 ```
 
-It is also possible to pass in your own deferred to the `to` method, along 
+It is also possible to pass in your own deferred to the `to` method, along
 with an array of arguments that will be passed to the `exit` and `enter` handlers.
 
 ```javascript
@@ -99,7 +99,7 @@ var app = new Miso.Storyboard({
 });
 
 var complete = _.Deferred();
-complete.done(function() { 
+complete.done(function() {
   console.log('done!');
 });
 
@@ -109,9 +109,9 @@ app.to('overview', [userID], complete);
 
 ## Conditional movement between scenes ##
 
-The `enter` and `exit` handlers can also be used to control whether it's possible to move between scenes. 
-If a handler returns false, or if it is asynchronous, passes `false` to its resolution function the 
-transition will be rejected. This can be managed inside handlers or by binding functions to the `fail` 
+The `enter` and `exit` handlers can also be used to control whether it's possible to move between scenes.
+If a handler returns false, or if it is asynchronous, passes `false` to its resolution function the
+transition will be rejected. This can be managed inside handlers or by binding functions to the `fail`
 method of the deferred returned by `to`.
 
 ```javascript
@@ -174,12 +174,12 @@ app.start();
 
 ## Nesting Storyboards ##
 
-It is also possible to nest Miso Storyboards inside each other, making it possible 
-to control state at each level of your code. For example if you had a slideshow inside 
-a larger storyboard, it could in turn be its own storyboard, with each slide being a scene, with handlers 
-defining each move between slides in a custom manner. 
+It is also possible to nest Miso Storyboards inside each other, making it possible
+to control state at each level of your code. For example if you had a slideshow inside
+a larger storyboard, it could in turn be its own storyboard, with each slide being a scene, with handlers
+defining each move between slides in a custom manner.
 
-```javscript
+```javascript
 var walkthrough = new Miso.Scene({
   initial : 'one',
   scenes : {
@@ -202,7 +202,7 @@ var app = new Miso.Scene({
 
 While the main goal of Storyboard is to help you manage your transition enter and exit phases, you can create simplified storyboards that only have `enter` behaviour like so:
 
-```javscript
+```javascript
 var walkthrough = new Miso.Scene({
   initial : 'one',
   scenes : {
@@ -229,7 +229,7 @@ walkthrough.start().then(function() {
 
 The above is functionaly equivalent to:
 
-```javscript
+```javascript
 var walkthrough = new Miso.Scene({
   initial : 'one',
   scenes : {
